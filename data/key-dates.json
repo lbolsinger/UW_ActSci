@@ -1,0 +1,11 @@
+[
+  {"title": "Office hours begin", "start": "2026-10-05"},
+  {"title": "Mentorship applications due", "start": "2026-11-05"},
+  {"title": "Reading week", "start": "2026-11-09", "end": "2026-11-13", "pausesOfficeHours": true},
+  {"title": "Last day of classes", "start": "2026-12-04"},
+  {"title": "Exam period", "start": "2026-12-07", "end": "2026-12-22"},
+  {"title": "Winter classes begin", "start": "2027-01-11"},
+  {"title": "Office hours resume", "start": "2027-01-18"},
+  {"title": "Reading week", "start": "2027-02-15", "end": "2027-02-19", "pausesOfficeHours": true},
+  {"title": "Last day of classes", "start": "2027-04-09"}
+]
