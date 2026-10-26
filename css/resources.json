@@ -1,0 +1,17 @@
+[
+  {"title": "Exam preparation", "image": null,
+   "text": "Most actuarial pathways start with a handful of exams on probability, financial mathematics and statistics. Our study groups meet weekly, and past members share their study plans in the Discord.",
+   "links": [
+     {"label": "Society of Actuaries: exams and requirements", "url": "https://www.soa.org"},
+     {"label": "Casualty Actuarial Society: exams", "url": "https://www.casact.org"},
+     {"label": "Canadian Institute of Actuaries", "url": "https://www.cia-ica.ca"}]},
+  {"title": "Study materials", "image": null,
+   "text": "Our shared drive has practice problem sets, formula sheets and worked solutions contributed by members. Request access with your school email.",
+   "links": [{"label": "Club shared drive", "url": "#"}, {"label": "Actuarial Outpost forums", "url": "https://www.actuarialoutpost.com"}]},
+  {"title": "Careers and resumes", "image": null,
+   "text": "Not sure how to get your first internship? Start with our resume template and the list of companies that recruit on campus each year.",
+   "links": [{"label": "Resume template", "url": "#"}, {"label": "Recruiting calendar", "url": "#"}, {"label": "Book a resume critique", "url": "#programs/resume"}]},
+  {"title": "Software and skills", "image": null,
+   "text": "Pricing and reserving work happens in Excel, R and Python. Our workshops cover the basics.",
+   "links": [{"label": "Excel for actuaries: workshop slides", "url": "#"}, {"label": "Intro to R and Python notebooks", "url": "#"}]}
+]

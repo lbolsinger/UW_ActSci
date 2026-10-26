@@ -1,0 +1,30 @@
+{
+  "mentorship": {
+    "title": "Mentorship",
+    "text": [
+      "Get paired with an upper-year student or alumnus who has been through the exam process and the internship search. Pairs meet at least once a month and join two club-wide socials.",
+      "We are looking for both people who want a mentor and people willing to be one."],
+    "participantUrl": "#", "volunteerUrl": "#"
+  },
+  "resume": {
+    "title": "Resume critique",
+    "text": [
+      "Submit your resume and get written feedback from an exec or alumnus within a week, or come to Resume Critique Night for a live one-on-one review.",
+      "Reviewers are always welcome: you do not need to be a working actuary, only to know what a strong resume looks like."],
+    "participantUrl": "#", "volunteerUrl": "#"
+  },
+  "opg": {
+    "title": "Open Pricing Game (OPG)",
+    "lead": "The OPG is a pricing simulation. Teams take over a book of insurance policyholders and compete to price it better than the other teams.",
+    "text": [
+      "Every policyholder has up to five years of history: product (property or auto), group (A or B), age, number of accidents, paid claims and how those claims developed over time. In each session your team works through a simplified reserving and pricing worksheet, then submits rates.",
+      "Price too high and policyholders leave for cheaper teams. Price too low and you win a lot of business that loses money. After every session the market moves and everyone receives one more year of data."],
+    "steps": [
+      "Receive your data package: the policyholders you currently insure and their full history.",
+      "Reserve: build development factors from the paid-claims triangle and estimate ultimate losses.",
+      "Indicate: turn ultimate losses into an expected loss cost for each product, group and age band.",
+      "Select rates: load for expenses and profit, and decide how you want to compare with the market.",
+      "Submit. Policyholders compare prices, move teams, and a new year of claims is revealed."],
+    "registerUrl": "#"
+  }
+}

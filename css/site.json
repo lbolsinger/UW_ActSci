@@ -1,0 +1,17 @@
+{
+  "name": "Actuarial Science Club",
+  "tagline": "Pricing the future, together.",
+  "bannerImage": null,
+  "execGroupPhoto": null,
+  "officeHoursImage": null,
+  "registerUrl": "#",
+  "opgRegisterUrl": "#",
+  "discord": "#",
+  "instagram": "#",
+  "email": "club@example.com",
+  "about": [
+    "We are a student community for anyone curious about actuarial science, insurance and data. Whether you are writing your first exam or just wondering what an actuary does, there is a seat for you.",
+    "Through the year we run exam study groups, industry nights, resume critiques, a mentorship program and the Open Pricing Game, where teams price a live book of policyholders against each other."
+  ],
+  "footer": "© 2026 Actuarial Science Club"
+}
