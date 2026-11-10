@@ -24,16 +24,6 @@ js/
   pages/                One file per page (home, events, resources, programs, execs)
 ```
 
-## Running it locally
-
-The site loads its JSON files, so it needs a web server (opening `index.html` by double-clicking will not work):
-
-```
-python3 -m http.server
-```
-
-then visit http://localhost:8000.
-
 ## Publishing on GitHub Pages
 
 1. Push this folder to a GitHub repository.
