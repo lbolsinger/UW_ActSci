@@ -1,20 +1,29 @@
 [
   {"name": "Presidents", "photo": null, "members": [
-    {"id": "jordan-lee", "name": "Jordan Lee", "role": "Co-President", "year": "4th year", "program": "Actuarial Science", "photo": null},
-    {"id": "priya-nair", "name": "Priya Nair", "role": "Co-President", "year": "4th year", "program": "Statistics", "photo": null}]},
-  {"name": "Academic", "photo": null, "members": [
-    {"id": "marcus-webb", "name": "Marcus Webb", "role": "VP Academic", "year": "3rd year", "program": "Actuarial Science", "photo": null},
-    {"id": "sofia-alvarez", "name": "Sofia Alvarez", "role": "Exam Prep Director", "year": "3rd year", "program": "Mathematics", "photo": null},
-    {"id": "daniel-kim", "name": "Daniel Kim", "role": "Study Group Lead", "year": "2nd year", "program": "Actuarial Science", "photo": null}]},
-  {"name": "Programs", "photo": null, "members": [
-    {"id": "amara-okafor", "name": "Amara Okafor", "role": "VP Programs", "year": "4th year", "program": "Actuarial Science", "photo": null},
-    {"id": "ethan-cho", "name": "Ethan Cho", "role": "OPG Lead", "year": "3rd year", "program": "Statistics", "photo": null},
-    {"id": "hannah-berg", "name": "Hannah Berg", "role": "Mentorship Coordinator", "year": "3rd year", "program": "Economics", "photo": null}]},
-  {"name": "Events & Sponsorship", "photo": null, "members": [
-    {"id": "luis-romero", "name": "Luis Romero", "role": "VP Events", "year": "3rd year", "program": "Commerce", "photo": null},
-    {"id": "mei-tanaka", "name": "Mei Tanaka", "role": "Sponsorship Director", "year": "2nd year", "program": "Commerce", "photo": null},
-    {"id": "noah-fischer", "name": "Noah Fischer", "role": "Events Coordinator", "year": "2nd year", "program": "Actuarial Science", "photo": null}]},
-  {"name": "Marketing & Design", "photo": null, "members": [
-    {"id": "zara-ahmed", "name": "Zara Ahmed", "role": "VP Marketing", "year": "3rd year", "program": "Communications", "photo": null},
-    {"id": "oliver-grant", "name": "Oliver Grant", "role": "Designer", "year": "2nd year", "program": "Computer Science", "photo": null}]}
+    {"id": "deeksha-khullar", "name": "Deeksha Khullar", "role": "President", "year": "3B", "program": "Statistics & Actuarial Science", "photo": null}]},
+  {"name": "Events", "photo": null, "members": [
+    {"id": "wendy-yang", "name": "Wendy Yang", "role": "Vice President Events", "year": "4A", "program": "Actuarial Science & Statistics", "photo": null},
+    {"id": "praneeth-balasubramanian", "name": "Praneeth Balasubramanian", "role": "Events Coordinator", "year": "2A", "program": "Actuarial Science", "photo": null},
+    {"id": "elizabeth-liu", "name": "Elizabeth Liu", "role": "Events Coordinator", "year": "2A", "program": "Actuarial Science & Statistics", "photo": null},
+    {"id": "vivian-fang", "name": "Vivian Fang", "role": "Events Coordinator", "year": null, "program": null, "photo": null},
+    {"id": "irfa-azam", "name": "Irfa Azam", "role": "Events Coordinator", "year": null, "program": null, "photo": null}]},
+  {"name": "Admin", "photo": null, "members": [
+    {"id": "jigarjeet-grovera", "name": "Jigarjeet Grovera", "role": "Vice President Administration", "year": "4A", "program": "Math/BBA", "photo": null},
+    {"id": "joanna-li", "name": "Joanna Li", "role": "Mentorship Coordinator", "year": "3A", "program": "Actuarial Science", "photo": null},
+    {"id": "brooke-yang", "name": "Brooke Yang", "role": "Mentorship Coordinator", "year": "3B", "program": "Actuarial Science", "photo": null},
+    {"id": "anika-nickel", "name": "Anika Nickel", "role": "Mentorship Coordinator", "year": "4A", "program": "Actuarial Science", "photo": null},
+    {"id": "hercules-cheng", "name": "Hercules Cheng", "role": "Webmaster", "year": "3A", "program": "Actuarial Science & Statistics", "photo": null}]},
+  {"name": "Marketing", "photo": null, "members": [
+    {"id": "christina-sun", "name": "Christina Sun", "role": "Vice President Marketing", "year": "2A", "program": "Math/BBA", "photo": null},
+    {"id": "alison-trieu", "name": "Alison Trieu", "role": "Publicity Director", "year": "2A", "program": "Actuarial Science & Statistics", "photo": null},
+    {"id": "rayna-cui", "name": "Rayna Cui", "role": "Publicity Director", "year": "2A", "program": "Actuarial Science", "photo": null},
+    {"id": "sam-su", "name": "Sam Su", "role": "Publicity Director", "year": "2A", "program": "Actuarial Science", "photo": null}]},
+  {"name": "Media", "photo": null, "members": [
+    {"id": "ian-dicker", "name": "Ian Dicker", "role": "Vice President Media", "year": "3B", "program": "Actuarial Science & Statistics", "photo": null},
+    {"id": "pedro-da-rosa", "name": "Pedro Da Rosa", "role": "Media Director", "year": "3A", "program": "Math/BBA", "photo": null},
+    {"id": "jason-sun", "name": "Jason Sun", "role": "Media Director", "year": "3B", "program": "Statistics & Actuarial Science", "photo": null},
+    {"id": "alicia-zhang", "name": "Alicia Zhang", "role": "Media Director", "year": "2A", "program": "Mathematics", "photo": null}]},
+  {"name": "Finance", "photo": null, "members": [
+    {"id": "marc-blatter", "name": "Marc Blatter", "role": "Vice President Finance", "year": "4A", "program": "Actuarial Science & Statistics", "photo": null},
+    {"id": "sarah-mei", "name": "Sarah Mei", "role": "Director of Finance", "year": "2A", "program": "Actuarial Science", "photo": null}]}
 ]
