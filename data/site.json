@@ -1,17 +1,22 @@
 {
-  "name": "Actuarial Science Club",
+  "name": "UW ActSci Club",
   "tagline": "Pricing the future, together.",
-  "bannerImage": null,
+  "bannerImage": "images/banner/actsci-club-banner.jpg",
   "execGroupPhoto": null,
   "officeHoursImage": null,
   "registerUrl": "#",
   "opgRegisterUrl": "#",
   "discord": "#",
   "instagram": "#",
-  "email": "club@example.com",
+  "facebook": "#",
+  "linkedin": "#",
+  "email": "asclub.uwaterloo@gmail.com",
+  "address": "M3 1003, RM 1003 University of Waterloo, 200 University Ave W, Waterloo, ON N2L 3G1",
+  "office": "M3 1003",
   "about": [
-    "We are a student community for anyone curious about actuarial science, insurance and data. Whether you are writing your first exam or just wondering what an actuary does, there is a seat for you.",
-    "Through the year we run exam study groups, industry nights, resume critiques, a mentorship program and the Open Pricing Game, where teams price a live book of policyholders against each other."
+    "The UW ActSci Club is the official student-led organization serving Waterloo's Actuarial Science undergraduate students. It is an organization for students with the common interest of pursuing an actuarial career to come together, network, learn, and improve their UW experience.",
+    "As UW ActSci Club, we host social events, information sessions, and networking opportunities. We operate a mentorship program to connect new and experienced members, and we offer discount codes for Coaching Actuaries and ACTEX study materials.",
+    "Feel free to stop by our office (M3 1003) to learn more about the club and everything we have to offer. Our friendly exec team is always happy to chat, answer your questions, and share advice about courses, exams, and coop."
   ],
-  "footer": "© 2026 Actuarial Science Club"
+  "footer": "© 2026 UW ActSci Club"
 }
