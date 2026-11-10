@@ -14,9 +14,19 @@
   "address": "M3 1003, RM 1003 University of Waterloo, 200 University Ave W, Waterloo, ON N2L 3G1",
   "office": "M3 1003",
   "about": [
-    "The UW ActSci Club is the official student-led organization serving Waterloo's Actuarial Science undergraduate students. It is an organization for students with the common interest of pursuing an actuarial career to come together, network, learn, and improve their UW experience.",
-    "As UW ActSci Club, we host social events, information sessions, and networking opportunities. We operate a mentorship program to connect new and experienced members, and we offer discount codes for Coaching Actuaries and ACTEX study materials.",
-    "Feel free to stop by our office (M3 1003) to learn more about the club and everything we have to offer. Our friendly exec team is always happy to chat, answer your questions, and share advice about courses, exams, and coop."
+    "The UW ActSci Club is the official student-led organization serving Waterloo's Actuarial Science undergraduate students. It is an organization for students with the common interest of pursuing an actuarial career to come together, network, learn, and improve their UW experience."
+  ],
+  "aboutListIntro": "As UW ActSci Club, we:",
+  "aboutList": [
+    "Host social events, information sessions, and networking opportunities",
+    "Operate a mentorship program to connect new and experienced members",
+    "Offer discount codes for Coaching Actuaries and ACTEX study materials"
+  ],
+  "joinTitle": "Not a member yet?",
+  "joinSubtitle": "Sign up for Fall 2026 now!",
+  "joinText": [
+    "Feel free to stop by our office (M3 1003) to learn more about the club and everything we have to offer. Our friendly exec team is always happy to chat, answer your questions, and share advice about courses, exams, and coop.",
+    "Whether you're just getting started or looking to get more involved, we'd love to connect with you, and we look forward to seeing you at one of our upcoming events!"
   ],
   "footer": "© 2026 UW ActSci Club"
 }
