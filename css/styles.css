@@ -183,3 +183,6 @@ code{background:#EEF1F7;padding:1px 5px;border-radius:4px;font-size:.88em}
 .member b{display:block;font-family:var(--head)}
 .member span{display:block;font-size:.88rem;color:var(--ink-2)}
 footer{max-width:1400px;margin:10px auto 0;padding:24px;color:var(--muted);font-size:.88rem}
+
+.bullets{margin:0 0 1em;padding-left:1.3em;color:var(--ink-2)}
+.bullets li{margin-bottom:.35em;max-width:70ch}
