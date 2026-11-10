@@ -186,3 +186,8 @@ footer{max-width:1400px;margin:10px auto 0;padding:24px;color:var(--muted);font-
 
 .bullets{margin:0 0 1em;padding-left:1.3em;color:var(--ink-2)}
 .bullets li{margin-bottom:.35em;max-width:70ch}
+
+/* banner when an image is used */
+.banner:has(.banner-img){height:auto;background:#262626}
+.banner:has(.banner-img) img.banner-img{position:static;display:block;width:100%;max-width:960px;height:auto;margin:0 auto;object-fit:contain}
+.banner:has(.banner-img) .banner-title{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0}
