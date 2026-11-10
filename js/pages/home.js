@@ -50,6 +50,9 @@ export function render() {
     <div class="stack">
       <section class="card" aria-labelledby="aboutH">
         <h2 id="aboutH">What we do</h2>
+        ${site.about.map(p => `<p>${esc(p)}</p>`).join('')}
+        ${site.aboutListIntro ? `<p>${esc(site.aboutListIntro)}</p>` : ''}
+        ${site.aboutList?.length ? `<ul class="bullets">${site.aboutList.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
         <p class="lead">${esc(site.about[0])}</p>
         ${site.about.slice(1).map(p => `<p>${esc(p)}</p>`).join('')}
       </section>
