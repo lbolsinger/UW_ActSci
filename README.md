@@ -1,7 +1,5 @@
 # Actuarial Science Club website
 
-A static website (plain HTML, CSS and JavaScript, no build step). All of the content lives in JSON files in `data/`, so most updates never touch the code.
-
 ## Folder layout
 
 ```
