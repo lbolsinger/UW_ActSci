@@ -1,17 +1,46 @@
 [
-  {"title": "Exam preparation", "image": null,
-   "text": "Most actuarial pathways start with a handful of exams on probability, financial mathematics and statistics. Our study groups meet weekly, and past members share their study plans in the Discord.",
+  {"title": "What is actuarial science?", "image": null,
+   "text": "Actuarial science applies mathematical and statistical methods to assess risk in insurance, finance and other industries. Actuaries are risk architects who use data to predict the likelihood of future events and design ways to reduce their financial impact. Insurance is the most common application, with pathways in life and health, property and casualty, pensions and benefits, and enterprise risk. To explore further, talk to your professors, meet our execs at office hours, network at our company events, or try an actuarial co-op.",
    "links": [
-     {"label": "Society of Actuaries: exams and requirements", "url": "https://www.soa.org"},
-     {"label": "Casualty Actuarial Society: exams", "url": "https://www.casact.org"},
+     {"label": "Society of Actuaries", "url": "https://www.soa.org"},
+     {"label": "Casualty Actuarial Society", "url": "https://www.casact.org"},
      {"label": "Canadian Institute of Actuaries", "url": "https://www.cia-ica.ca"}]},
-  {"title": "Study materials", "image": null,
-   "text": "Our shared drive has practice problem sets, formula sheets and worked solutions contributed by members. Request access with your school email.",
-   "links": [{"label": "Club shared drive", "url": "#"}, {"label": "Actuarial Outpost forums", "url": "https://www.actuarialoutpost.com"}]},
-  {"title": "Careers and resumes", "image": null,
-   "text": "Not sure how to get your first internship? Start with our resume template and the list of companies that recruit on campus each year.",
-   "links": [{"label": "Resume template", "url": "#"}, {"label": "Recruiting calendar", "url": "#"}, {"label": "Book a resume critique", "url": "#programs/resume"}]},
-  {"title": "Software and skills", "image": null,
-   "text": "Pricing and reserving work happens in Excel, R and Python. Our workshops cover the basics.",
-   "links": [{"label": "Excel for actuaries: workshop slides", "url": "#"}, {"label": "Intro to R and Python notebooks", "url": "#"}]}
+  {"title": "Exam study materials", "image": null,
+   "text": "Active club members get exclusive discounts for the Fall 2026 term: Coaching Actuaries (25% off Practice, 50% off Learn Lite + Practice, 70% off Learn Complete + Practice + VEE), ACTEX (20% off Study Guide + Practice) and TIA (100% off Study Guides + Practice for Exam P and Exam FM). To get the Coaching Actuaries and ACTEX codes, email asclub.uwaterloo@gmail.com with your name, student number and Waterloo email. The discount can't be combined with the UW code, you must upload proof of enrollment at checkout, and codes can't be shared.",
+   "links": [
+     {"label": "Request discount codes", "url": "mailto:asclub.uwaterloo@gmail.com"},
+     {"label": "TIA: Exam P and FM courses, practice and sample exams", "url": "#"}]},
+  {"title": "Exam P and FM practice", "image": null,
+   "text": "Free practice problems with solutions for the first two exams, plus a sample online exam from the SOA.",
+   "links": [
+     {"label": "Exam P: practice problems and solutions", "url": "#"},
+     {"label": "Exam FM: practice problems and solutions", "url": "#"},
+     {"label": "SOA sample online exam", "url": "#"}]},
+  {"title": "Calculators", "image": null,
+   "text": "The two calculators most commonly used for the preliminary exams.",
+   "links": [
+     {"label": "Financial: TI BA II Plus", "url": "#"},
+     {"label": "Scientific: TI-30XS MultiView", "url": "#"}]},
+  {"title": "Academics and course planning", "image": null,
+   "text": "Plan your courses ahead, see which UW courses cover SOA and CAS preliminary exam material, and get official support for degree adjustments.",
+   "links": [
+     {"label": "Projected course offerings", "url": "#"},
+     {"label": "Course to exam mapping", "url": "#"},
+     {"label": "Academic advising", "url": "#"},
+     {"label": "Statistics and Actuarial Science FAQs", "url": "#"}]},
+  {"title": "Careers and co-op", "image": null,
+   "text": "Learn how the SOA, CAS and CIA accreditation pathways work, find tips for landing a co-op and changing your work sequence, and read about ASNA, the annual conference of the Actuarial Students' National Association.",
+   "links": [
+     {"label": "Accreditation pathways: SOA, CAS and CIA", "url": "#"},
+     {"label": "CIA info session slides", "url": "#"},
+     {"label": "Co-op resources from the CEE Hub", "url": "#"},
+     {"label": "ASNA", "url": "#"},
+     {"label": "Book a resume critique", "url": "#programs/resume"}]},
+  {"title": "Event slides", "image": null,
+   "text": "Missed an event? Slides from past sessions are collected here.",
+   "links": [
+     {"label": "Case Comp 101 (June 30, 2026)", "url": "#"},
+     {"label": "ASNA 2027 info session (Oct 7, 2026)", "url": "#"},
+     {"label": "BOT Spring 2026 (May 25, 2026)", "url": "#"},
+     {"label": "BOT F26 presentation (Sept 28, 2026)", "url": "#"}]}
 ]
