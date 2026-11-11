@@ -23,12 +23,11 @@ export function renderBanner() {
            <h1>${esc(site.name)}</h1>
          </div>
        </div>`;
-       </div>`;
   } else {
     // Fallback when bannerImage is null: the generated number-triangle banner.
     banner.classList.remove('has-art');
     banner.innerHTML =
-      `<div class="banner-art" aria-hidden="true"><svg ...>${numbers}</svg></div>` +
+      `<div class="banner-art" aria-hidden="true"><svg viewBox="0 0 470 200" preserveAspectRatio="xMaxYMid meet">${numbers}</svg></div>` +
       `<div class="banner-title"><h1>${esc(site.name)}</h1><p>${esc(site.tagline)}</p></div>`;
   }
 
