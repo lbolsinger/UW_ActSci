@@ -10,11 +10,26 @@ export function renderBanner() {
     `<text x="${(j + 1) * 86 + 20}" y="${(i + 1) * 34 + 14}" text-anchor="end" class="${i + j === 4 ? 'new' : ''}">${v.toLocaleString('en-CA')}</text>`
   ).join('')).join('');
 
-  $('#banner').innerHTML =
-    (site.bannerImage
-      ? `<img class="banner-img" src="${esc(site.bannerImage)}" alt="">`
-      : `<div class="banner-art" ...>...</div>`) +
-    `<div class="banner-title"><h1>...</h1><p>...</p></div>`;;
+  const banner = $('#banner');
+  if (site.bannerImage) {
+    // Art mode: wide background image cropped to fit, with a live-text logo on top.
+    banner.classList.add('has-art');
+    banner.innerHTML =
+      `<img class="banner-img" src="${esc(site.bannerImage)}" alt="">` +
+      `<div class="lockup">
+         ${site.bannerLogo ? `<img class="lockup-mark" src="${esc(site.bannerLogo)}" alt="">` : ''}
+         <div class="lockup-text">
+           ${site.organization ? `<p class="lockup-org">${esc(site.organization)}</p>` : ''}
+           <h1>${esc(site.name)}</h1>
+         </div>
+       </div>`;
+  } else {
+    // Fallback when bannerImage is null: the generated number-triangle banner.
+    banner.classList.remove('has-art');
+    banner.innerHTML =
+      `<div class="banner-art" aria-hidden="true"><svg ...>${numbers}</svg></div>` +
+      `<div class="banner-title"><h1>${esc(site.name)}</h1><p>${esc(site.tagline)}</p></div>`;
+  }
 
   $('#navLabel').textContent = site.name;
   $('#foot').textContent = site.footer;
