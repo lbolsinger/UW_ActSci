@@ -27,7 +27,7 @@ img{max-width:100%;display:block}
 .wrap{max-width:1400px;margin:0 auto;padding:24px}
 
 /* banner */
-.banner{--bh:clamp(130px,22vw,260px);background:var(--navy);color:#fff;position:relative;overflow:hidden;height:var(--bh)}
+.banner{--bh:clamp(150px,17vw,220px);background:var(--navy);color:#fff;position:relative;overflow:hidden;height:var(--bh)}
 .banner img.banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
 .banner-art{position:absolute;right:0;top:0;height:100%;width:min(52%,620px)}
 .banner-art svg{width:100%;height:100%}
@@ -41,11 +41,12 @@ img{max-width:100%;display:block}
 /* Art mode: the background crops to the window (wider screens show more of it).
    The logo lockup stays centred and scales with the banner HEIGHT, not the width. */
 .banner.has-art{background:#1B1B1B;border-bottom:5px solid #FFD60A}
-.banner .lockup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.55em;padding:0 16px;font-size:calc(var(--bh) * .15)}
-.banner .lockup-mark{height:2.7em;width:auto;flex:none}
+.banner .lockup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.55em;padding:0 16px;font-size:calc(var(--bh) * .17)}
+.banner .lockup-mark{height:2.4em;width:auto;flex:none}
 .banner .lockup-text{min-width:0}
-.banner .lockup-org{margin:0 0 .18em;font:800 .52em/1 var(--head);letter-spacing:.04em;text-transform:uppercase;color:#FFD60A;max-width:none}
+.banner .lockup-org{margin:0 0 .18em;font:800 .6em/1 var(--head);letter-spacing:.03em;text-transform:uppercase;color:#FFD60A;max-width:none}
 .banner .lockup h1{margin:0;font:800 1em/1 var(--head);letter-spacing:-.01em;text-transform:uppercase;color:#fff;white-space:nowrap}
+@media(max-width:700px){.banner .lockup{font-size:calc(var(--bh) * .125)}}
 
 /* nav */
 .nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
