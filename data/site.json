@@ -1,7 +1,8 @@
 {
   "name": "UW ActSci Club",
   "tagline": "",
-  "bannerImage": "images/banner/actsci-club-banner-clean.png",
+  "bannerImage": "images/banner/actsci-banner-bg.svg",
+  "bannerLogo": "images/banner/actsci-logo-mark.svg",
   "execGroupPhoto": null,
   "officeHoursImage": null,
   "registerUrl": "#",
