@@ -53,7 +53,6 @@ export function render() {
         ${site.about.map(p => `<p>${esc(p)}</p>`).join('')}
         ${site.aboutListIntro ? `<p>${esc(site.aboutListIntro)}</p>` : ''}
         ${site.aboutList?.length ? `<ul class="bullets">${site.aboutList.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
-        <p class="lead">${esc(site.about[0])}</p>
       </section>
       <figure class="card figure" style="margin:0">
         ${pic(site.execGroupPhoto, 'Exec team group photo', 'The club executive team')}
