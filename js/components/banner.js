@@ -23,6 +23,7 @@ export function renderBanner() {
            <h1>${esc(site.name)}</h1>
          </div>
        </div>`;
+       </div>`;
   } else {
     // Fallback when bannerImage is null: the generated number-triangle banner.
     banner.classList.remove('has-art');
