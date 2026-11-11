@@ -13,8 +13,8 @@ export function renderBanner() {
   $('#banner').innerHTML =
     (site.bannerImage
       ? `<img class="banner-img" src="${esc(site.bannerImage)}" alt="">`
-      : `<div class="banner-art" aria-hidden="true"><svg viewBox="0 0 470 200" preserveAspectRatio="xMaxYMid meet">${numbers}</svg></div>`) +
-    `<div class="banner-title"><h1>${esc(site.name)}</h1><p>${esc(site.tagline)}</p></div>`;
+      : `<div class="banner-art" ...>...</div>`) +
+    `<div class="banner-title"><h1>...</h1><p>...</p></div>`;;
 
   $('#navLabel').textContent = site.name;
   $('#foot').textContent = site.footer;
