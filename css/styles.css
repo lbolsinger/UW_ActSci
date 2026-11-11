@@ -27,8 +27,8 @@ img{max-width:100%;display:block}
 .wrap{max-width:1400px;margin:0 auto;padding:24px}
 
 /* banner */
-.banner{background:var(--navy);color:#fff;position:relative;overflow:hidden;height:clamp(130px,19vw,240px)}
-.banner img.banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.banner{--bh:clamp(130px,22vw,260px);background:var(--navy);color:#fff;position:relative;overflow:hidden;height:var(--bh)}
+.banner img.banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
 .banner-art{position:absolute;right:0;top:0;height:100%;width:min(52%,620px)}
 .banner-art svg{width:100%;height:100%}
 .banner-art text{font:500 20px var(--body);font-variant-numeric:tabular-nums;fill:#fff;opacity:.14}
@@ -37,6 +37,15 @@ img{max-width:100%;display:block}
 .banner h1{font-weight:800;font-size:clamp(1.7rem,5vw,3.6rem);margin:0}
 .banner p{margin:.3em 0 0;font-size:clamp(.9rem,1.6vw,1.2rem);color:#C9D3EA}
 @media(max-width:700px){.banner-art text{opacity:.1}.banner-art text.new{opacity:.45}}
+
+/* Art mode: the background crops to the window (wider screens show more of it).
+   The logo lockup stays centred and scales with the banner HEIGHT, not the width. */
+.banner.has-art{background:#1B1B1B;border-bottom:5px solid #FFD60A}
+.banner .lockup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.55em;padding:0 16px;font-size:calc(var(--bh) * .15)}
+.banner .lockup-mark{height:2.7em;width:auto;flex:none}
+.banner .lockup-text{min-width:0}
+.banner .lockup-org{margin:0 0 .18em;font:800 .52em/1 var(--head);letter-spacing:.04em;text-transform:uppercase;color:#FFD60A;max-width:none}
+.banner .lockup h1{margin:0;font:800 1em/1 var(--head);letter-spacing:-.01em;text-transform:uppercase;color:#fff;white-space:nowrap}
 
 /* nav */
 .nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
@@ -186,8 +195,3 @@ footer{max-width:1400px;margin:10px auto 0;padding:24px;color:var(--muted);font-
 
 .bullets{margin:0 0 1em;padding-left:1.3em;color:var(--ink-2)}
 .bullets li{margin-bottom:.35em;max-width:70ch}
-
-/* banner when an image is used */
-.banner:has(.banner-img){height:auto;background:#262626}
-.banner:has(.banner-img) img.banner-img{position:static;display:block;width:100%;max-width:960px;height:auto;margin:0 auto;object-fit:contain}
-.banner:has(.banner-img) .banner-title{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0}
