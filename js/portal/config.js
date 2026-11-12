@@ -7,17 +7,17 @@
 
 // From Firebase console: Project settings > Your apps > Web app > Config
 export const firebaseConfig = {
-  apiKey: "PASTE_API_KEY_HERE",
-  authDomain: "PASTE_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_PROJECT_ID_HERE",
-  storageBucket: "PASTE_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_SENDER_ID_HERE",
-  appId: "PASTE_APP_ID_HERE"
+  apiKey: "AIzaSyD_x2Nvgh-sPgItC0uEoecWbY-JNIFpf84",
+  authDomain: "actsci-club.firebaseapp.com",
+  projectId: "actsci-club",
+  storageBucket: "actsci-club.firebasestorage.app",
+  messagingSenderId: "31244712653",
+  appId: "1:31244712653:web:3f01b09083e0d217540784"
 };
 
 // The club's Google account (owner of the Firebase project). It must also be
 // typed into firestore.rules, in the adminEmail() function.
-export const ADMIN_EMAIL = "PASTE_CLUB_ACCOUNT_EMAIL_HERE";
+export const ADMIN_EMAIL = "lucy.bollinger.spam@gmail.com";
 
 // Only members with this email ending can register.
 export const MEMBER_EMAIL_ENDING = "@uwaterloo.ca";
