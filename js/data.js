@@ -27,9 +27,25 @@ export async function loadData() {
 
   // one flat list for the calendar
   store.items = [
-    ...keyDates.map(k => ({ type: 'key', title: k.title, start: k.start, end: k.end || k.start, allDay: true, ref: k })),
-    ...events.map(e => ({ type: 'event', title: e.title, start: e.start, end: (e.allDay && e.end) || e.start,
-                          allDay: !!e.allDay, startTime: e.startTime, ref: e }))
+    ...keyDates.map(k => ({ 
+      type: 'key', 
+      id: k.id || k.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 
+      title: k.title, 
+      start: k.start, 
+      end: k.end || k.start, 
+      allDay: true, 
+      ref: k 
+    })),
+    ...events.map(e => ({ 
+      type: 'event', 
+      id: e.id || e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 
+      title: e.title, 
+      start: e.start, 
+      end: (e.allDay && e.end) || e.start, 
+      allDay: !!e.allDay, 
+      startTime: e.startTime, 
+      ref: e 
+    }))
   ];
 
   export function getItemById(id) {
