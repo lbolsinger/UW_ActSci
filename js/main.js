@@ -11,7 +11,7 @@ import * as execs from './pages/execs.js';
 import * as account from './pages/account.js';
 
 // To add a page: create js/pages/<name>.js exporting render(), add it here, and add a tab in index.html.
-const PAGES = { home, events, resources, programs, execs };
+const PAGES = { home, events, resources, programs, execs, account }; 
 let current = 'home';
 let pendingOpen = null;   // day to open once the Events page has rendered
 
