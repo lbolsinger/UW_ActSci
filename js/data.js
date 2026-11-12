@@ -31,6 +31,10 @@ export async function loadData() {
     ...events.map(e => ({ type: 'event', title: e.title, start: e.start, end: (e.allDay && e.end) || e.start,
                           allDay: !!e.allDay, startTime: e.startTime, ref: e }))
   ];
+
+  export function getItemById(id) {
+    return store.items.find(i => i.id === id);
+  }
 }
 
 /** Office hours happening on a given Date (respects periods and paused weeks). */
