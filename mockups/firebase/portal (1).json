@@ -1,0 +1,9 @@
+{
+  "currentTerm": { "season": "Fall", "year": 2026 },
+  "emailListTerms": 4,
+  "mentorMaxMentees": 3,
+  "checkInOpensMinutesBefore": 15,
+  "years": ["1st year", "2nd year", "3rd year", "4th year", "5th year or later", "Graduate"],
+  "exams": ["P", "FM", "IFM", "SRM", "FAM", "ALTAM", "ASTAM", "PA"],
+  "mentorInterests": ["P&C", "Life", "Health", "Pensions", "Data science", "Not sure yet"]
+}

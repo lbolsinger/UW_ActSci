@@ -1,0 +1,228 @@
+rules_version = '2';
+
+// ============================================================================
+// UW ActSci Club: Firestore security rules
+//
+// BEFORE YOU PUBLISH: change the email address in adminEmail() below to your
+// club's Google account (the one that owns the Firebase project). It must be
+// the same address you put in js/portal/config.js.
+//
+// Who is who:
+//   member = signed in with an @uwaterloo.ca address
+//   exec   = a member whose email has a document in the "execs" collection
+//   admin  = the club account (adminEmail). Can also do everything an exec can.
+// ============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function adminEmail() { return 'PASTE_CLUB_ACCOUNT_EMAIL_HERE'; }
+
+    function signedIn()  { return request.auth != null && request.auth.token.email_verified == true; }
+    function email()     { return request.auth.token.email.lower(); }
+    function me()        { return request.auth.uid; }
+    function isAdmin()   { return signedIn() && email() == adminEmail().lower(); }
+    function isMember()  { return signedIn() && email().matches('.*@uwaterloo[.]ca'); }
+    function isExec()    { return isAdmin() || (isMember() && exists(/databases/$(database)/documents/execs/$(email()))); }
+
+    function docsPath()  { return /databases/$(database)/documents; }
+    function hasMembership(termId) { return exists(/databases/$(database)/documents/memberships/$(me() + '_' + termId)); }
+    function paidMembership(termId) {
+      return exists(/databases/$(database)/documents/memberships/$(me() + '_' + termId))
+        && get(/databases/$(database)/documents/memberships/$(me() + '_' + termId)).data.paid == true;
+    }
+    function isPaired(termId, otherUid) {
+      return exists(/databases/$(database)/documents/pairings/$(termId + '_' + otherUid + '_' + me()))
+          || exists(/databases/$(database)/documents/pairings/$(termId + '_' + me() + '_' + otherUid));
+    }
+    function short(v, n) { return v is string && v.size() <= n; }
+
+    // ------------------------------------------------------------------ execs
+    // Only the club account can add or remove execs.
+    match /execs/{id} {
+      allow read: if isExec() || (signedIn() && id == email());
+      allow write: if isAdmin();
+    }
+
+    // ------------------------------------------------------------------ users
+    // Private member details. Members see only their own. Execs see everyone's.
+    match /users/{uid} {
+      function validUser(d) {
+        return d.uid == uid && d.email == email()
+          && short(d.name, 100) && d.name.size() > 0
+          && short(d.year, 40) && d.workTerm in ['study', 'coop']
+          && short(d.get('dietary', ''), 300)
+          && short(d.get('linkedin', ''), 300)
+          && short(d.get('coopExperience', ''), 1000)
+          && d.get('exams', []) is list
+          && d.directoryVisible is bool && d.emailOptIn is bool;
+      }
+      allow read: if isExec() || (isMember() && uid == me());
+      allow create: if isMember() && uid == me() && validUser(request.resource.data);
+      allow update: if (isMember() && uid == me() && validUser(request.resource.data))
+                    || (isExec() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['emailOptIn']));
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------ memberships
+    // One document per member per term, id = uid_termId. Members can create
+    // their own (always unpaid) and edit their details, but never the paid flag.
+    match /memberships/{id} {
+      allow get:  if isExec() || (isMember() && id.matches(me() + '_.*'));
+      allow list: if isExec() || (isMember() && resource.data.uid == me());
+      allow create: if isExec()
+        || (isMember() && request.resource.data.uid == me()
+            && id == me() + '_' + request.resource.data.termId
+            && request.resource.data.email == email()
+            && request.resource.data.paid == false
+            && !('paidAt' in request.resource.data));
+      allow update: if isExec()
+        || (isMember() && resource.data.uid == me()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['year', 'workTerm', 'dietary', 'name']));
+      allow delete: if isAdmin();
+    }
+
+    // --------------------------------------------------------------- payments
+    // WUSA numbers, who verified cash, and the history. Execs only.
+    match /payments/{id} {
+      allow read, write: if isExec();
+    }
+
+    // ------------------------------------------------------------- attendance
+    // id = eventId_uid. Execs can mark anyone. A member can only sign THEMSELVES
+    // in, and only if they have a paid membership for that term.
+    match /attendance/{id} {
+      allow get:  if isExec() || (isMember() && id.matches('.*_' + me()));
+      allow list: if isExec() || (isMember() && resource.data.uid == me());
+      allow create: if isExec()
+        || (isMember() && request.resource.data.uid == me()
+            && request.resource.data.method in ['self', 'qr']
+            && id == request.resource.data.eventId + '_' + me()
+            && request.resource.data.email == email()
+            && paidMembership(request.resource.data.termId));
+      allow update, delete: if isExec();
+    }
+
+    // -------------------------------------------------------------- directory
+    // The public profile: name, year and the optional details. Any signed-in
+    // member can read it. Members write only their own. The "mentor" mark can
+    // only be set if the member really is a mentor.
+    match /directory/{uid} {
+      allow read: if isMember() || isExec();
+      allow create, update: if isMember() && uid == me()
+        && request.resource.data.uid == me()
+        && short(request.resource.data.name, 100)
+        && short(request.resource.data.get('linkedin', ''), 300)
+        && short(request.resource.data.get('coopExperience', ''), 1000)
+        && (request.resource.data.isMentor == false
+            || (exists(/databases/$(database)/documents/mentorProfiles/$(me() + '_' + request.resource.data.termId))
+                && get(/databases/$(database)/documents/mentorProfiles/$(me() + '_' + request.resource.data.termId)).data.role == 'mentor'));
+      allow delete: if (isMember() && uid == me()) || isExec();
+    }
+
+    // ----------------------------------------------------------- resume critique
+    match /resumeRequests/{id} {
+      function validLink(l) { return l is string && l.matches('https?://.*') && l.size() <= 600; }
+      allow get, list: if isExec() || (isMember() && resource.data.uid == me());
+      allow create: if isMember() && request.resource.data.uid == me()
+        && request.resource.data.status == 'new'
+        && validLink(request.resource.data.link)
+        && hasMembership(request.resource.data.termId)
+        && !('reviewerEmail' in request.resource.data);
+      allow update: if isExec()
+        || (isMember() && resource.data.uid == me()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['link', 'roles', 'companies', 'feedbackWanted', 'deadline', 'status'])
+            && validLink(request.resource.data.link)
+            && (request.resource.data.status == resource.data.status
+                || (resource.data.status == 'needs_link' && request.resource.data.status == 'new')));
+      allow delete: if isExec() || (isMember() && resource.data.uid == me());
+
+      match /comments/{cid} {
+        allow read: if isExec()
+          || (isMember() && get(/databases/$(database)/documents/resumeRequests/$(id)).data.uid == me());
+        allow create: if isExec() && request.resource.data.authorEmail == email();
+        allow update, delete: if isAdmin() || (isExec() && resource.data.authorEmail == email());
+      }
+    }
+
+    // ---------------------------------------------------------- mock interviews
+    match /mockSessions/{id} {
+      allow read: if isMember() || isExec();
+      allow write: if isExec();
+    }
+    match /mockRegistrations/{id} {
+      allow get, list: if isExec() || (isMember() && resource.data.uid == me());
+      allow create: if isMember() && request.resource.data.uid == me()
+        && id == request.resource.data.sessionId + '_' + me()
+        && hasMembership(request.resource.data.termId)
+        && !('feedback' in request.resource.data);
+      allow update: if isExec();
+      allow delete: if isExec() || (isMember() && resource.data.uid == me());
+    }
+
+    // ---------------------------------------------------------------- ratings
+    // Members rate reviewers. ONLY the club account can read the ratings. A
+    // member can read back the one rating they wrote themselves.
+    // id = resume_<requestId>  or  mock_<registrationId>
+    match /ratings/{id} {
+      function ownsRated(rid) {
+        return (rid.matches('resume_.*')
+                && get(/databases/$(database)/documents/resumeRequests/$(rid[7:rid.size()])).data.uid == me())
+            || (rid.matches('mock_.*')
+                && get(/databases/$(database)/documents/mockRegistrations/$(rid[5:rid.size()])).data.uid == me());
+      }
+      allow get: if isAdmin() || (isMember() && ownsRated(id));
+      allow list: if isAdmin();
+      allow create, update: if isMember() && ownsRated(id)
+        && request.resource.data.keys().hasOnly(['kind', 'refId', 'reviewerEmail', 'reviewerName', 'stars', 'comment', 'updatedAt'])
+        && request.resource.data.stars is int
+        && request.resource.data.stars >= 1 && request.resource.data.stars <= 5
+        && short(request.resource.data.get('comment', ''), 500);
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------- mentorship
+    // Mentorship details are seen only by the member, execs, and the person
+    // they are paired with.
+    match /mentorProfiles/{id} {
+      allow get: if isExec()
+        || (isMember() && id.matches(me() + '_.*'))
+        || (isMember() && resource != null && isPaired(resource.data.termId, resource.data.uid));
+      allow list: if isExec() || (isMember() && resource.data.uid == me());
+      allow create: if isMember() && request.resource.data.uid == me()
+        && id == me() + '_' + request.resource.data.termId
+        && request.resource.data.role in ['mentor', 'mentee']
+        && request.resource.data.menteeCount == 0
+        && request.resource.data.capacity >= 1 && request.resource.data.capacity <= 3
+        && hasMembership(request.resource.data.termId);
+      allow update: if (isMember() && resource.data.uid == me()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['name', 'year', 'workTerm', 'interests', 'coop', 'goals', 'linkedin', 'meet', 'availability', 'capacity'])
+            && request.resource.data.capacity >= 1 && request.resource.data.capacity <= 3
+            && request.resource.data.capacity >= resource.data.menteeCount)
+        || (isExec() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menteeCount']));
+      allow delete: if isExec();
+    }
+
+    // A mentor can never end up with more than 3 mentees, or more than the
+    // number they chose. The pairing and the mentor's count change together.
+    match /pairings/{id} {
+      allow get, list: if isExec()
+        || (isMember() && (resource.data.mentorUid == me() || resource.data.menteeUid == me()));
+      allow create: if isExec()
+        && id == request.resource.data.termId + '_' + request.resource.data.mentorUid + '_' + request.resource.data.menteeUid
+        && getAfter(/databases/$(database)/documents/mentorProfiles/$(request.resource.data.mentorUid + '_' + request.resource.data.termId)).data.menteeCount
+             == get(/databases/$(database)/documents/mentorProfiles/$(request.resource.data.mentorUid + '_' + request.resource.data.termId)).data.menteeCount + 1
+        && getAfter(/databases/$(database)/documents/mentorProfiles/$(request.resource.data.mentorUid + '_' + request.resource.data.termId)).data.menteeCount <= 3
+        && getAfter(/databases/$(database)/documents/mentorProfiles/$(request.resource.data.mentorUid + '_' + request.resource.data.termId)).data.menteeCount
+             <= get(/databases/$(database)/documents/mentorProfiles/$(request.resource.data.mentorUid + '_' + request.resource.data.termId)).data.capacity;
+      allow delete: if isExec();
+    }
+
+    // ------------------------------------------------------- deletion requests
+    match /deletionRequests/{uid} {
+      allow create: if isMember() && uid == me() && request.resource.data.uid == me();
+      allow read, delete: if isAdmin();
+    }
+  }
+}
