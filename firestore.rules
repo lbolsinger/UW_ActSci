@@ -16,7 +16,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ---------------------------------------------------------------- helpers
-    function adminEmail() { return 'PASTE_CLUB_ACCOUNT_EMAIL_HERE'; }
+    function adminEmail() { return 'lucy.bollinger.spam@gmail.com'; }
 
     function signedIn()  { return request.auth != null && request.auth.token.email_verified == true; }
     function email()     { return request.auth.token.email.lower(); }
