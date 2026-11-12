@@ -47,10 +47,6 @@ export async function loadData() {
       ref: e 
     }))
   ];
-
-  export function getItemById(id) {
-    return store.items.find(i => i.id === id);
-  }
 }
 
 /** Office hours happening on a given Date (respects periods and paused weeks). */
@@ -76,4 +72,8 @@ export function nextEvent() {
   return store.events
     .filter(e => endOf(e) > now)
     .sort((a, b) => parse(a.start) - parse(b.start) || (a.startTime || '').localeCompare(b.startTime || ''))[0];
+}
+
+export function getItemById(id) {
+  return store.items.find(i => i.id === id);
 }
