@@ -4,6 +4,7 @@ import { read, list, col, ref, db, F, stamp, where, batch } from '../db.js';
 import { esc, fresh, acts, bindWidgets, collect, seg, chips, toggle, badge, toast, toDate, fmtDay, fmtTime } from '../ui.js';
 import { termId, termLabel, labelFromId, termOrder } from '../terms.js';
 import { isOpen, selfCheckIn } from '../checkin-core.js';
+import { regConfig, queueState, eventKey, eventStart, eventEnd, eventQueues, payWarning } from '../eventreg.js';
 import { signOut } from '../auth.js';
 
 export async function render(root, ctx) {
@@ -263,27 +264,50 @@ const methodText = a => a.method === 'exec' ? `Marked by ${a.by || 'an exec'}` :
 
 async function dashboard(v, ctx) {
   const uid = session.user.uid, tid = termId(ctx.term), p = session.profile;
-  const [mems, atts, mentor] = await Promise.all([
+  const [mems, atts, mentor, myRegs] = await Promise.all([
     list(col('memberships'), where('uid', '==', uid)),
     list(col('attendance'), where('uid', '==', uid)),
-    read('mentorProfiles', `${uid}_${tid}`)
+    read('mentorProfiles', `${uid}_${tid}`),
+    list(col('eventRegistrations'), where('uid', '==', uid)).catch(() => [])   // an older database without sign-up just has none
   ]);
   mems.sort((a, b) => termOrder(b.termId) - termOrder(a.termId));
   const current = mems.find(m => m.termId === tid);
   const attended = new Set(atts.map(a => a.eventId));
   const thisTermAtt = atts.filter(a => a.termId === tid).sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0));
 
-  const openEvents = current?.paid
-    ? ctx.data.events.filter(e => !attended.has(e.id) && isOpen(e, ctx.portal.checkInOpensMinutesBefore)) : [];
+  // Check-in prompt. Unpaid members see it too, but it tells them they have to pay first.
+  const minsBefore = ctx.portal.checkInOpensMinutesBefore;
+  const openEvents = current ? ctx.data.events.filter(e => !attended.has(e.id) && isOpen(e, minsBefore)) : [];
   const prompts = openEvents.map(e => {
     const start = e.allDay ? 'today' : `at ${fmtTime(new Date(`${e.start}T${e.startTime}`))}`;
-    return `<div class="prompt"><div><b>${esc(e.title)} is on now</b><span>${esc(start)}${e.location ? ', ' + esc(e.location) : ''}. Sign in and you'll be marked present.</span></div><a class="btn primary" href="#" data-act="checkin" data-event="${esc(e.id)}">Sign in to this event</a></div>`;
+    const place = `${esc(start)}${e.location ? ', ' + esc(e.location) : ''}.`;
+    return current.paid
+      ? `<div class="prompt"><div><b>${esc(e.title)} is on now</b><span>${place} Sign in and you'll be marked present.</span></div><a class="btn primary" href="#" data-act="checkin" data-event="${esc(e.id)}">Sign in to this event</a></div>`
+      : `<div class="prompt"><div><b>${esc(e.title)} is on now</b><span>${place} <b>Payment required:</b> you need to pay the club fee before you can sign in.</span></div><a class="btn primary" href="#" data-act="paywarn">Sign in to this event</a></div>`;
   }).join('');
+
+  // Reminders for events you've signed up for that start within two days (the check-in prompt takes over once it opens).
+  const regByEvent = new Map(myRegs.map(r => [r.eventId, r]));
+  const dayWord = d => { const t0 = new Date(); t0.setHours(0, 0, 0, 0); const n = Math.round((new Date(d).setHours(0, 0, 0, 0) - t0) / 864e5); return n <= 0 ? 'Today' : n === 1 ? 'Tomorrow' : fmtDay(d); };
+  let reminders = '';
+  try {
+    const nowMs = Date.now();
+    const soon = ctx.data.events.filter(e => regByEvent.has(eventKey(e)) && regConfig(e).mode === 'portal' && eventEnd(e) > nowMs
+      && eventStart(e) - nowMs <= 48 * 3600e3 && !isOpen(e, minsBefore) && !attended.has(e.id));
+    const queues = soon.length ? await eventQueues(soon) : {};
+    reminders = soon.map(e => {
+      const st = queueState(regConfig(e), queues[eventKey(e)] || []);
+      const when = `${dayWord(eventStart(e))}${e.allDay ? '' : ' at ' + fmtTime(eventStart(e))}${e.location ? ', ' + esc(e.location) : ''}.`;
+      if (st.mine?.state === 'confirmed') return `<div class="prompt"><div><b>You're registered for ${esc(e.title)}</b><span>${when} Can't make it? Cancel on the Events page so the next person can take your spot.</span></div><a class="btn" href="#account/events">See details</a></div>`;
+      if (st.mine?.state === 'waitlisted') return `<div class="prompt"><div><b>You're on the waitlist for ${esc(e.title)} (#${st.mine.position})</b><span>${when} If a spot opens up you move up automatically, and this page will say so.</span></div><a class="btn" href="#account/events">See details</a></div>`;
+      return '';
+    }).join('');
+  } catch (err) { console.warn(err); }
 
   const office = ctx.data.site.office;
   const status = !current
     ? `<div class="alert"><b>You haven't registered for ${esc(termLabel(ctx.term))} yet.</b>Renew your membership to take part in this term's events and programs.</div>`
-    : current.paid ? '' : `<div class="alert"><b>You're registered for ${esc(termLabel(ctx.term))}.</b>Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here once they receive it.</div>`;
+    : current.paid ? '' : `<div class="alert"><b>You're registered for ${esc(termLabel(ctx.term))}.</b>Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here once they receive it. Programs (mentorship, resume critique, mock interviews) unlock when they do.</div>`;
 
   const hist = [
     !current ? `<li><div><b>${esc(termLabel(ctx.term))}</b><div class="hint">Not registered</div></div><a class="btn primary sm" href="#" data-act="renew">Renew for ${esc(termLabel(ctx.term))}</a></li>` : '',
@@ -292,7 +316,7 @@ async function dashboard(v, ctx) {
   ].join('');
 
   v.innerHTML = `
-  ${prompts}${status}
+  ${prompts}${reminders}${status}
   <div class="prof">
     <div class="stack">
       <section class="card"><div class="sec-h">Membership</div><ul class="hist">${hist}</ul>
@@ -353,6 +377,7 @@ async function dashboard(v, ctx) {
       await selfCheckIn(e, ctx.term, 'self');
       toast('You\'re signed in!'); ctx.rerender();
     },
+    paywarn() { payWarning(office); },
     async signout() { await signOut(); location.reload(); },
     async delreq() {
       if (!confirm('Ask the club to delete your account and personal details? An admin will process this.')) return;
