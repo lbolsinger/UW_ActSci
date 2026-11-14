@@ -196,7 +196,7 @@ function publicFields(ctx, p = {}) {
     <div class="field"><label for="f-li">LinkedIn</label><input id="f-li" name="linkedin" type="url" placeholder="https://linkedin.com/in/…" value="${esc(p.linkedin || '')}" maxlength="300"></div>
     <div class="field"><label for="f-coop">Previous co-op experience</label><textarea id="f-coop" name="coopExperience" maxlength="1000">${esc(p.coopExperience || '')}</textarea></div>
     ${credentialsField(ctx, p)}
-    <div class="prefrow rule"><div><b>Show me in the member directory</b><div class="hint">Shows your name, year and the details above to signed-in members. Turn off to hide yourself completely.</div></div>${toggle('directoryVisible', !!p.directoryVisible)}</div>`;
+    <div class="prefrow rule"><div><b>Show me in the member directory</b><div class="hint">Shows your name, year and the details above to signed-in members. Turn off to hide yourself completely.</div></div>${toggle('directoryVisible', p.directoryVisible !== false)}</div>`;
 }
 
 const clean = (d, keys) => Object.fromEntries(keys.map(k => [k, d[k]]));
