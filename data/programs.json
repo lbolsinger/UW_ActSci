@@ -14,8 +14,8 @@
     "participantUrl": "#", "volunteerUrl": "#"
   },
   "opg": {
-    "title": "Open Pricing Game (OPG)",
-    "lead": "The OPG is a pricing simulation. Teams take over a book of insurance policyholders and compete to price it better than the other teams.",
+    "title": "Out Performance Games (OPG)",
+    "lead": "The OPG is a pricing simulation stolen from Intact intern activities. Teams take over a book of insurance policyholders and compete to price it better than the other teams.",
     "text": [
       "Every policyholder has up to five years of history: product (property or auto), group (A or B), age, number of accidents, paid claims and how those claims developed over time. In each session your team works through a simplified reserving and pricing worksheet, then submits rates.",
       "Price too high and policyholders leave for cheaper teams. Price too low and you win a lot of business that loses money. After every session the market moves and everyone receives one more year of data."],
