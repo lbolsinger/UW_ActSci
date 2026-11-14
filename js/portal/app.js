@@ -5,16 +5,18 @@ import { allowedEmail, signOut } from './auth.js';
 import { esc } from './ui.js';
 import * as signin from './views/signin.js';
 
-const MEMBER_TABS = [['membership', 'My membership'], ['programs', 'Programs'], ['directory', 'Directory']];
-const EXEC_TABS = [['manage', 'Manage members'], ['attendance', 'Attendance'], ['email', 'Email list'], ['programadmin', 'Program admin']];
+const MEMBER_TABS = [['membership', 'My membership'], ['events', 'Events'], ['programs', 'Programs'], ['directory', 'Directory']];
+const EXEC_TABS = [['manage', 'Manage members'], ['attendance', 'Attendance'], ['registrations', 'Event sign-ups'], ['email', 'Email list'], ['programadmin', 'Program admin']];
 const ADMIN_TABS = [['admin', 'Admin']];
 
 const VIEWS = {
   membership: () => import('./views/membership.js'),
+  events: () => import('./views/events.js'),
   programs: () => import('./views/my-programs.js'),
   directory: () => import('./views/directory.js'),
   manage: () => import('./views/manage.js'),
   attendance: () => import('./views/attendance.js'),
+  registrations: () => import('./views/registrations.js'),
   email: () => import('./views/emaillist.js'),
   programadmin: () => import('./views/programadmin.js'),
   admin: () => import('./views/admin.js')
@@ -48,10 +50,16 @@ function subnavHTML(active, tabs) {
   return html + '</nav>';
 }
 
+// Shown on the sign-in page when someone clicked through from a sign-up button.
+const SIGNIN_NOTES = {
+  events: 'Sign in to register for events. Registering takes a minute, and you can pay the club fee in person when we take attendance.',
+  programs: 'Sign in to sign up for programs. Programs are for paid members: pay the club fee in cash or through WUSA, and an exec will confirm it.'
+};
+
 export async function renderAccount(box, sub) {
   cleanup();
   await init();
-  if (!session.user) return signin.render(box);
+  if (!session.user) return signin.render(box, { note: SIGNIN_NOTES[sub] || '' });
   if (!allowedEmail(session.email)) {
     box.innerHTML = `<div class="portal-narrow card"><h2>Use your Waterloo email</h2><p>You're signed in as <b>${esc(session.email)}</b>, but the portal is only for @uwaterloo.ca addresses.</p><a class="btn" href="#account" data-signout>Sign out</a></div>`;
     box.querySelector('[data-signout]').addEventListener('click', async e => { e.preventDefault(); await signOut(); location.reload(); });
