@@ -352,7 +352,7 @@ end $$;
 -- The website sends {"__op":"now"}, {"__op":"delete"} or {"__op":"arrayUnion","values":[...]}
 -- where Firestore used serverTimestamp(), deleteField() and arrayUnion().
 create or replace function public.app_resolve(p_base jsonb, p_patch jsonb) returns jsonb
-language plpgsql stable as $$
+language plpgsql stable set search_path = public as $$
 declare
   r jsonb := coalesce(p_base, '{}'::jsonb);
   k text; v jsonb; cur jsonb;
@@ -493,7 +493,7 @@ create or replace function public.hook_before_user_created(event jsonb) returns 
 language plpgsql stable as $$
 declare e text := lower(coalesce(event -> 'user' ->> 'email', ''));
 begin
-  if right(e, length(app_member_ending())) = app_member_ending() or e = lower(app_admin_email()) then
+  if right(e, length(public.app_member_ending())) = public.app_member_ending() or e = lower(public.app_admin_email()) then
     return '{}'::jsonb;
   end if;
   return jsonb_build_object('error', jsonb_build_object(
