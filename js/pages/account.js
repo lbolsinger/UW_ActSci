@@ -5,7 +5,7 @@ import { isConfigured } from '../portal/config.js';
 const SETUP_NOTICE = `
   <div class="card portal-narrow">
     <h2>The member portal isn't switched on yet</h2>
-    <p>Accounts, registration and the member directory need a Firebase project. Once it's set up and the settings are pasted into <code>js/portal/config.js</code>, this page will work. Follow <code>SETUP.md</code>.</p>
+    <p>Accounts, registration and the member directory need a Supabase project. Once it's set up and the settings are pasted into <code>js/portal/config.js</code>, this page will work. Follow <code>SUPABASE_SETUP.md</code>.</p>
   </div>`;
 
 export function render() { return `<div id="portal"><p class="empty">Loading…</p></div>`; }
