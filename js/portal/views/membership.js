@@ -49,7 +49,6 @@ function credentialsField(ctx, p = {}) {
             <span class="lbl">Credentials &amp; Exams</span>
             <div class="hint">Highlight your earned credentials and completed exams</div>
           </div>
-          <button type="button" class="cred-edit-link" data-cred-toggle>✎ Edit</button>
         </div>
 
         <div data-cred-view>
@@ -63,14 +62,24 @@ function credentialsField(ctx, p = {}) {
           </div>
         </div>
 
-        <div class="cred-picker hidden" data-cred-edit>
-          <div class="cred-sublbl"><span>Designations (hides covered exams in summary)</span></div>
+        <!-- Tray 1: Only shows when "+ Add" (Credentials) is clicked -->
+        <div class="cred-picker hidden" data-cred-tray="des">
+          <div class="cred-sublbl">
+            <span>Select designations (automatically hides covered exams above)</span>
+            <button type="button" class="cred-edit-link" data-close-tray="des">Close</button>
+          </div>
           <div data-des-group>${chips('credentials', designations, selDes)}</div>
+        </div>
 
-          <div class="cred-sublbl" style="margin-top:14px">
+        <!-- Tray 2: Only shows when "+ Add Exam" is clicked -->
+        <div class="cred-picker hidden" data-cred-tray="exams">
+          <div class="cred-sublbl">
             <span>Exams passed</span>
-            <div class="track-Switch">
-              ${trackNames.map((t, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-track-btn="${esc(t)}">${esc(t)}</button>`).join('')}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div class="track-Switch">
+                ${trackNames.map((t, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-track-btn="${esc(t)}">${esc(t)}</button>`).join('')}
+              </div>
+              <button type="button" class="cred-edit-link" data-close-tray="exams">Close</button>
             </div>
           </div>
           ${trackNames.map((t, i) => `
@@ -88,29 +97,77 @@ function bindCredentials(root, ctx) {
   if (!box) return;
 
   const coveredMap = coveredByDesignation(ctx.portal.credentials.tracks);
-  const viewPane = box.querySelector('[data-cred-view]');
-  const editPane = box.querySelector('[data-cred-edit]');
+  const desTray = box.querySelector('[data-cred-tray="des"]');
+  const examTray = box.querySelector('[data-cred-tray="exams"]');
   const desGroup = box.querySelector('[data-des-group]');
-  const toggleBtn = box.querySelector('[data-cred-toggle]');
   const desSummary = box.querySelector('[data-cred-view-des]');
   const examSummary = box.querySelector('[data-cred-view-exams]');
 
-  // Sync shared exams (P, FM) across SOA (ASA) and CAS (ACAS) panes and refresh summary
+  // Sync shared exams (P, FM) across SOA (ASA) and CAS (ACAS) panes and immediately update summary
   box.addEventListener('click', e => {
-    const chip = e.target.closest('.chip2[data-v]');
-    if (!chip || !editPane.contains(chip)) return;
+    const chip = e.target.closest('.chip2[data-val]');
+    if (!chip || (!desTray.contains(chip) && !examTray.contains(chip))) return;
     requestAnimationFrame(() => {
-      const val = chip.dataset.v;
+      const val = chip.dataset.val;
       const isOn = chip.classList.contains('on');
-      if (!desGroup.contains(chip)) {
-        box.querySelectorAll(`[data-track-pane] .chip2[data-v="${CSS.escape(val)}"]`).forEach(c => {
+      if (examTray.contains(chip)) {
+        examTray.querySelectorAll(`[data-track-pane] .chip2[data-val="${CSS.escape(val)}"]`).forEach(c => {
           c.classList.toggle('on', isOn);
-          c.setAttribute('aria-pressed', isOn);
         });
       }
       renderSummary();
     });
   });
+
+  // Track tab switcher inside Exams tray
+  box.querySelectorAll('[data-track-btn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.trackBtn;
+      box.querySelectorAll('[data-track-btn]').forEach(b => b.classList.toggle('on', b === btn));
+      box.querySelectorAll('[data-track-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.trackPane !== target));
+    });
+  });
+
+  // Close buttons inside each tray
+  box.querySelectorAll('[data-close-tray]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const which = btn.dataset.closeTray;
+      (which === 'des' ? desTray : examTray).classList.add('hidden');
+    });
+  });
+
+  function toggleTray(which) {
+    if (which === 'des') {
+      desTray.classList.toggle('hidden');
+      examTray.classList.add('hidden');
+    } else {
+      examTray.classList.toggle('hidden');
+      desTray.classList.add('hidden');
+    }
+  }
+
+  function renderSummary() {
+    const activeDes = [...desGroup.querySelectorAll('.chip2.on[data-val]')].map(c => c.dataset.val);
+    const covered = new Set(activeDes.flatMap(d => coveredMap[d] || []));
+    const activeExams = [...new Set(
+      [...examTray.querySelectorAll('[data-track-pane] .chip2.on[data-val]')].map(c => c.dataset.val)
+    )].filter(ex => !covered.has(ex));
+
+    desSummary.innerHTML = activeDes.map(d =>
+      `<span class="chip2 ${SECONDARY_DESIGNATIONS.has(d) ? 'des-alt' : 'des'}" data-open-tray="des" title="Click to edit designations" style="cursor:pointer">${esc(d)}</span>`
+    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-tray="des">+ Add</button>`;
+
+    examSummary.innerHTML = activeExams.map(ex =>
+      `<span class="chip2 on" data-open-tray="exams" title="Click to edit exams">${esc(ex)}</span>`
+    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-tray="exams">+ Add Exam</button>`;
+
+    box.querySelectorAll('[data-open-tray]').forEach(el => {
+      el.addEventListener('click', () => toggleTray(el.dataset.openTray));
+    });
+  }
+
+  renderSummary();
+}
 
   // Track tab switcher
   box.querySelectorAll('[data-track-btn]').forEach(btn => {
