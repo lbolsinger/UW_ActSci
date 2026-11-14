@@ -17,6 +17,167 @@ export async function render(root, ctx) {
 const yearSelect = (years, sel) =>
   `<select name="year">${years.map(y => `<option ${y === sel ? 'selected' : ''}>${esc(y)}</option>`).join('')}</select>`;
 
+const SECONDARY_DESIGNATIONS = new Set(['CERA', 'MAAA']);
+
+function coveredByDesignation(tracks) {
+  const asa = tracks['SOA (ASA)'] || [];
+  const fsa = tracks['SOA (FSA)'] || [];
+  const acas = tracks['CAS (ACAS)'] || [];
+  const fcas = tracks['CAS (FCAS)'] || [];
+  return {
+    ASA: [...asa, 'IFM'],
+    FSA: [...asa, ...fsa, 'IFM'],
+    ACAS: [...acas, 'IFM'],
+    FCAS: [...acas, ...fcas, 'IFM'],
+    ACIA: ['P', 'FM', 'IFM', 'ACIA Capstone'],
+    FCIA: ['P', 'FM', 'IFM', 'ACIA Capstone', 'FCIA Mod 1', 'FCIA Mod 2', 'FCIA Capstone'],
+    CERA: ['P', 'FM', 'IFM', 'ERM']
+  };
+}
+
+/* Groups the exam tracks for display: "SOA (ASA)" and "SOA (FSA)" become one SOA tab with an
+   ASA section and an FSA section. A track with no brackets (like "CIA / Other") is a tab on its own. */
+function examGroups(tracks) {
+  const groups = new Map();
+  for (const [key, exams] of Object.entries(tracks)) {
+    const m = key.match(/^(.*?)\s*\((.+)\)$/);
+    const group = m ? m[1] : key, sub = m ? m[2] : '';
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group).push({ sub, exams });
+  }
+  return [...groups];
+}
+
+function credentialsField(ctx, p = {}) {
+  const { designations, tracks } = ctx.portal.credentials;
+  const groups = examGroups(tracks);
+  const selDes = p.credentials || [];
+  const selExams = p.exams || [];
+
+  return `
+    <div class="field">
+      <div class="cred-box" data-cred-widget>
+        <div class="cred-top">
+          <div>
+            <span class="lbl">Credentials &amp; Exams</span>
+            <div class="hint">Highlight your earned credentials and completed exams</div>
+          </div>
+        </div>
+
+        <div data-cred-view>
+          <div class="cred-row">
+            <span class="cred-rlbl">Credentials</span>
+            <div class="chips" data-cred-view-des></div>
+          </div>
+          <div class="cred-row">
+            <span class="cred-rlbl">Exams</span>
+            <div class="chips" data-cred-view-exams></div>
+          </div>
+        </div>
+
+        <!-- Tray 1: Designations only -->
+        <div class="cred-picker hidden" data-cred-tray="des">
+          <div class="cred-sublbl">
+            <span>Select designations</span>
+            <button type="button" class="cred-edit-link" data-close-tray="des">Close</button>
+          </div>
+          <div data-des-group>${chips('credentials', designations, selDes)}</div>
+        </div>
+
+        <!-- Tray 2: Exams with track tabs -->
+        <div class="cred-picker hidden" data-cred-tray="exams">
+          <div class="cred-sublbl" style="margin-bottom:12px">
+            <div class="track-Switch">
+              ${groups.map(([g], i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-track-btn="${esc(g)}">${esc(g)}</button>`).join('')}
+            </div>
+            <button type="button" class="cred-edit-link" data-close-tray="exams">Close</button>
+          </div>
+          ${groups.map(([g, parts], i) => `
+            <div class="${i === 0 ? '' : 'hidden'}" data-track-pane="${esc(g)}">
+              ${parts.map(({ sub, exams }) => `
+                ${sub ? `<div class="cred-grp-lbl" style="font-weight:600;margin:12px 0 6px">${esc(sub)} exams</div>` : ''}
+                ${chips('exams', exams, selExams)}`).join('')}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function bindCredentials(root, ctx) {
+  const box = root.querySelector('[data-cred-widget]');
+  if (!box) return;
+
+  const coveredMap = coveredByDesignation(ctx.portal.credentials.tracks);
+  const desTray = box.querySelector('[data-cred-tray="des"]');
+  const examTray = box.querySelector('[data-cred-tray="exams"]');
+  const desGroup = box.querySelector('[data-des-group]');
+  const desSummary = box.querySelector('[data-cred-view-des]');
+  const examSummary = box.querySelector('[data-cred-view-exams]');
+
+  box.addEventListener('click', e => {
+    const chip = e.target.closest('.chip2[data-val]');
+    if (!chip || (!desTray.contains(chip) && !examTray.contains(chip))) return;
+    requestAnimationFrame(() => {
+      const val = chip.dataset.val;
+      const isOn = chip.classList.contains('on');
+      if (examTray.contains(chip)) {
+        examTray.querySelectorAll(`[data-track-pane] .chip2[data-val="${CSS.escape(val)}"]`).forEach(c => {
+          c.classList.toggle('on', isOn);
+        });
+      }
+      renderSummary();
+    });
+  });
+
+  box.querySelectorAll('[data-track-btn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.trackBtn;
+      box.querySelectorAll('[data-track-btn]').forEach(b => b.classList.toggle('on', b === btn));
+      box.querySelectorAll('[data-track-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.trackPane !== target));
+    });
+  });
+
+  box.querySelectorAll('[data-close-tray]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const which = btn.dataset.closeTray;
+      (which === 'des' ? desTray : examTray).classList.add('hidden');
+    });
+  });
+
+  function toggleTray(which) {
+    if (which === 'des') {
+      desTray.classList.toggle('hidden');
+      examTray.classList.add('hidden');
+    } else {
+      examTray.classList.toggle('hidden');
+      desTray.classList.add('hidden');
+    }
+  }
+
+  function renderSummary() {
+    const activeDes = [...desGroup.querySelectorAll('.chip2.on[data-val]')].map(c => c.dataset.val);
+    const covered = new Set(activeDes.flatMap(d => coveredMap[d] || []));
+    const activeExams = [...new Set(
+      [...examTray.querySelectorAll('[data-track-pane] .chip2.on[data-val]')].map(c => c.dataset.val)
+    )].filter(ex => !covered.has(ex));
+
+    desSummary.innerHTML = activeDes.map(d =>
+      `<span class="chip2 ${SECONDARY_DESIGNATIONS.has(d) ? 'des-alt' : 'des'}" data-open-tray="des" title="Click to edit designations" style="cursor:pointer">${esc(d)}</span>`
+    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-tray="des">+ Add</button>`;
+
+    examSummary.innerHTML = activeExams.map(ex =>
+      `<span class="chip2 on" data-open-tray="exams" title="Click to edit exams">${esc(ex)}</span>`
+    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-tray="exams">+ Add Exam</button>`;
+
+    box.querySelectorAll('[data-open-tray]').forEach(el => {
+      el.addEventListener('click', () => toggleTray(el.dataset.openTray));
+    });
+  }
+
+  renderSummary();
+}
+
 function detailsFields(ctx, p = {}) {
   return `
     <div class="field"><label for="f-name">Your name <span class="req">*</span></label>
@@ -34,7 +195,7 @@ function publicFields(ctx, p = {}) {
     <div class="notice">Everything in this section appears in the member directory and can be seen by other members who are signed in. It's optional, and you can leave any of it blank. Don't add anything you wouldn't want other members to read.</div>
     <div class="field"><label for="f-li">LinkedIn</label><input id="f-li" name="linkedin" type="url" placeholder="https://linkedin.com/in/…" value="${esc(p.linkedin || '')}" maxlength="300"></div>
     <div class="field"><label for="f-coop">Previous co-op experience</label><textarea id="f-coop" name="coopExperience" maxlength="1000">${esc(p.coopExperience || '')}</textarea></div>
-    <div class="field"><span class="lbl">Exams passed</span>${chips('exams', ctx.portal.exams, p.exams || [])}</div>
+    ${credentialsField(ctx, p)}
     <div class="prefrow rule"><div><b>Show me in the member directory</b><div class="hint">Shows your name, year and the details above to signed-in members. Turn off to hide yourself completely.</div></div>${toggle('directoryVisible', !!p.directoryVisible)}</div>`;
 }
 
@@ -63,10 +224,13 @@ function registration(v, ctx) {
     <div class="share"><b>The club fee:</b> after you register, pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here.</div>
     <button class="btn primary" type="submit">Register for ${esc(termLabel(ctx.term))}</button>
   </form></div>`;
+  bindCredentials(v, ctx);
   const form = v.querySelector('#reg');
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const d = collect(form);
+    d.credentials = [...new Set(d.credentials || [])];
+    d.exams = [...new Set(d.exams || [])];
     const problem = validate(d);
     if (problem) return toast(problem, 'err');
     const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
@@ -74,7 +238,7 @@ function registration(v, ctx) {
       const uid = session.user.uid, tid = termId(ctx.term);
       const b = batch();
       b.set(ref('users', uid), {
-        uid, email: session.email, ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'exams']),
+        uid, email: session.email, ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams']),
         directoryVisible: !!d.directoryVisible, emailOptIn: !!d.emailOptIn, lastTermId: tid, createdAt: stamp()
       });
       b.set(ref('memberships', `${uid}_${tid}`), {
@@ -91,7 +255,7 @@ function registration(v, ctx) {
 
 const directoryDoc = (uid, d, tid, isMentor) => ({
   uid, name: d.name, year: d.year, linkedin: d.linkedin || '', coopExperience: d.coopExperience || '',
-  exams: d.exams || [], isMentor: !!isMentor, termId: tid, updatedAt: stamp()
+  credentials: [...new Set(d.credentials || [])], exams: [...new Set(d.exams || [])], isMentor: !!isMentor, termId: tid, updatedAt: stamp()
 });
 
 /* --------------------------------------------------------------- dashboard */
@@ -148,13 +312,17 @@ async function dashboard(v, ctx) {
     </form></div>
   </div>`;
 
+  bindCredentials(v, ctx);
+
   const form = v.querySelector('#profile-form');
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const d = collect(form);
+    d.credentials = [...new Set(d.credentials || [])];
+    d.exams = [...new Set(d.exams || [])];
     const problem = validate(d); if (problem) return toast(problem, 'err');
     const b = batch();
-    b.update(ref('users', uid), { ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'exams']), directoryVisible: !!d.directoryVisible });
+    b.update(ref('users', uid), { ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams']), directoryVisible: !!d.directoryVisible });
     if (current) b.update(ref('memberships', `${uid}_${tid}`), clean(d, ['name', 'year', 'workTerm', 'dietary']));
     if (d.directoryVisible && current) b.set(ref('directory', uid), directoryDoc(uid, d, tid, mentor?.role === 'mentor'));
     if (!d.directoryVisible) b.delete(ref('directory', uid));
