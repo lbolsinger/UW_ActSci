@@ -77,7 +77,7 @@ export function render() {
         <ul class="linklist">
           <li><a href="#programs/mentorship">${ICON.star}Mentorship</a></li>
           <li><a href="#programs/resume">${ICON.star}Resume critique</a></li>
-          <li><a href="#programs/opg">${ICON.star}Open Pricing Game</a></li>
+          <!-- <li><a href="#programs/opg">${ICON.star}Open Pricing Game</a></li> -->
         </ul></section>
     </aside>
   </div>`;
