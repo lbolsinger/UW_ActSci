@@ -62,7 +62,6 @@ function credentialsField(ctx, p = {}) {
           </div>
         </div>
 
-        <!-- Tray 1: Only shows when "+ Add" (Credentials) is clicked -->
         <div class="cred-picker hidden" data-cred-tray="des">
           <div class="cred-sublbl">
             <span>Select designations (automatically hides covered exams above)</span>
@@ -71,7 +70,6 @@ function credentialsField(ctx, p = {}) {
           <div data-des-group>${chips('credentials', designations, selDes)}</div>
         </div>
 
-        <!-- Tray 2: Only shows when "+ Add Exam" is clicked -->
         <div class="cred-picker hidden" data-cred-tray="exams">
           <div class="cred-sublbl">
             <span>Exams passed</span>
@@ -103,7 +101,6 @@ function bindCredentials(root, ctx) {
   const desSummary = box.querySelector('[data-cred-view-des]');
   const examSummary = box.querySelector('[data-cred-view-exams]');
 
-  // Sync shared exams (P, FM) across SOA (ASA) and CAS (ACAS) panes and immediately update summary
   box.addEventListener('click', e => {
     const chip = e.target.closest('.chip2[data-val]');
     if (!chip || (!desTray.contains(chip) && !examTray.contains(chip))) return;
@@ -119,7 +116,6 @@ function bindCredentials(root, ctx) {
     });
   });
 
-  // Track tab switcher inside Exams tray
   box.querySelectorAll('[data-track-btn]').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.trackBtn;
@@ -128,7 +124,6 @@ function bindCredentials(root, ctx) {
     });
   });
 
-  // Close buttons inside each tray
   box.querySelectorAll('[data-close-tray]').forEach(btn => {
     btn.addEventListener('click', () => {
       const which = btn.dataset.closeTray;
@@ -164,47 +159,6 @@ function bindCredentials(root, ctx) {
     box.querySelectorAll('[data-open-tray]').forEach(el => {
       el.addEventListener('click', () => toggleTray(el.dataset.openTray));
     });
-  }
-
-  renderSummary();
-}
-
-  // Track tab switcher
-  box.querySelectorAll('[data-track-btn]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.trackBtn;
-      box.querySelectorAll('[data-track-btn]').forEach(b => b.classList.toggle('on', b === btn));
-      box.querySelectorAll('[data-track-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.trackPane !== target));
-    });
-  });
-
-  const openEditor = () => {
-    editPane.classList.remove('hidden');
-    toggleBtn.textContent = '✓ Done';
-  };
-
-  toggleBtn.addEventListener('click', () => {
-    const isHidden = editPane.classList.toggle('hidden');
-    toggleBtn.textContent = isHidden ? '✎ Edit' : '✓ Done';
-    renderSummary();
-  });
-
-  function renderSummary() {
-    const activeDes = [...desGroup.querySelectorAll('.chip2.on[data-v]')].map(c => c.dataset.v);
-    const covered = new Set(activeDes.flatMap(d => coveredMap[d] || []));
-    const activeExams = [...new Set(
-      [...editPane.querySelectorAll('[data-track-pane] .chip2.on[data-v]')].map(c => c.dataset.v)
-    )].filter(ex => !covered.has(ex));
-
-    desSummary.innerHTML = activeDes.map(d =>
-      `<span class="chip2 ${SECONDARY_DESIGNATIONS.has(d) ? 'des-alt' : 'des'}">${esc(d)}</span>`
-    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-cred>+ Add</button>`;
-
-    examSummary.innerHTML = activeExams.map(ex =>
-      `<span class="chip2 on static">${esc(ex)}</span>`
-    ).join('') + `<button type="button" class="chip2 add-Ghost" data-open-cred>+ Add Exam</button>`;
-
-    viewPane.querySelectorAll('[data-open-cred]').forEach(b => b.addEventListener('click', openEditor));
   }
 
   renderSummary();
