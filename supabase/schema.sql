@@ -23,7 +23,7 @@
 
 -- ------------------------------------------------------------------- settings
 create or replace function public.app_admin_email() returns text
-language sql immutable as $$ select 'lucy.bollinger.spam@gmail.com'::text $$;
+language sql immutable as $$ select 'lisa.bolsinger06@gmail.com'::text $$;
 
 create or replace function public.app_member_ending() returns text
 language sql immutable as $$ select '@uwaterloo.ca'::text $$;
