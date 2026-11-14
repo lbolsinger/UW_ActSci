@@ -1,6 +1,6 @@
 import { esc, pic, parse, fmtDate, fmtShort, DAYS } from '../utils.js';
 import { store, nextEvent } from '../data.js';
-import { whenText, timeText } from '../components/modal.js';
+import { whenText, timeText, registerButton } from '../components/modal.js';
 
 const ICON = {
   discord: '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><circle cx="9" cy="11.5" r="1"/><circle cx="15" cy="11.5" r="1"/></svg>',
@@ -35,7 +35,7 @@ function nextEventCard() {
           <ul class="meta"><li>${whenText(ne)}, ${timeText(ne)}</li><li>${esc(ne.location)}</li></ul>
           <p>${esc(ne.description)}</p>
           <div class="btnrow">
-            ${ne.registerUrl ? `<a class="btn primary" href="${esc(ne.registerUrl)}">Register for this event</a>` : ''}
+            ${registerButton(ne, { cls: 'btn primary', label: 'Register for this event', emptyText: '' })}
             <button class="btn" data-open="${ne.start}">See details</button>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function render() {
         <ul class="linklist">
           <li><a href="#programs/mentorship">${ICON.star}Mentorship</a></li>
           <li><a href="#programs/resume">${ICON.star}Resume critique</a></li>
-          <!-- <li><a href="#programs/opg">${ICON.star}Out Performance Game</a></li> -->
+          <!-- OPG switched off for now: <li><a href="#programs/opg">Out Performance Games</a></li> -->
         </ul></section>
     </aside>
   </div>`;
