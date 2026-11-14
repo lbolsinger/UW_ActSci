@@ -1,33 +1,27 @@
 // ============================================================================
 // MEMBER PORTAL SETTINGS
-// Fill these in after you create your Firebase project (see SETUP.md).
-// None of this is secret: Firebase designs these values to be public.
-// Your data is protected by the rules in firestore.rules, not by hiding this.
+// Fill these in after you create your Supabase project (see SUPABASE_SETUP.md).
+// None of this is secret: Supabase designs the project URL and the public key
+// to be visible in the page. Your data is protected by the rules in
+// supabase/schema.sql, not by hiding these values.
 // ============================================================================
 
-// From Firebase console: Project settings > Your apps > Web app > Config
-export const firebaseConfig = {
-  apiKey: "AIzaSyD_x2Nvgh-sPgItC0uEoecWbY-JNIFpf84",
-  authDomain: "actsci-club.firebaseapp.com",
-  projectId: "actsci-club",
-  storageBucket: "actsci-club.firebasestorage.app",
-  messagingSenderId: "31244712653",
-  appId: "1:31244712653:web:3f01b09083e0d217540784"
-};
+// From the Supabase dashboard: Project Settings > API (or the "Connect" button).
+export const SUPABASE_URL = "PASTE_PROJECT_URL";            // like https://abcdefgh.supabase.co
+export const SUPABASE_ANON_KEY = "PASTE_PUBLIC_KEY";        // the "anon" or "publishable" key. NEVER the service_role / secret key.
 
-// The club's Google account (owner of the Firebase project). It must also be
-// typed into firestore.rules, in the adminEmail() function.
+// The club's email account. It must also be typed into supabase/schema.sql,
+// in the app_admin_email() function.
 export const ADMIN_EMAIL = "lucy.bollinger.spam@gmail.com";
 
 // Only members with this email ending can register.
 export const MEMBER_EMAIL_ENDING = "@uwaterloo.ca";
 
-// Version of Firebase's browser library to load (loaded from Google's servers).
-export const FIREBASE_SDK_VERSION = "12.19.0";
+// Version of Supabase's browser library to load (loaded from the jsDelivr CDN).
+export const SUPABASE_JS_VERSION = "2.119.0";
 
 // ---- no need to edit below this line ----
 export const adminEmail = () => (window.__TEST_ADMIN_EMAIL__ || ADMIN_EMAIL).toLowerCase();
 export const isConfigured = () =>
-  !!window.__USE_EMULATORS__ ||
-  ![...Object.values(firebaseConfig), ADMIN_EMAIL].some(v => /^PASTE_/.test(v));
+  !![SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_EMAIL].every(v => v && !/^PASTE_/.test(v)) || !!window.__TEST_SUPABASE__;
 export const isMemberEmail = e => e.toLowerCase().endsWith(MEMBER_EMAIL_ENDING);
