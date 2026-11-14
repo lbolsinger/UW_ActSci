@@ -1,6 +1,7 @@
 // Day pop-up on the Events page: key info, office hours, and event cards.
 import { $, esc, pic, parse, fmtDate, fmtTime, LONG } from '../utils.js';
 import { store, itemsOn, officeHoursOn } from '../data.js';
+import { regConfig, eventEnd } from '../portal/eventreg-core.js';
 
 let lastFocus = null;
 
@@ -11,6 +12,15 @@ export function whenText(e) {
 }
 export const timeText = e => e.allDay ? 'All day' : `${fmtTime(e.startTime)} to ${fmtTime(e.endTime)}`;
 
+/** The Register button for an event: portal sign-up (the default), an outside link, or nothing. */
+export function registerButton(e, { cls = 'btn primary sm', label = 'Register', emptyText = '<span class="empty">No registration needed.</span>' } = {}) {
+  const rc = regConfig(e);
+  if (rc.mode === 'external') return `<a class="${cls}" href="${esc(rc.url)}">${label}</a>`;
+  if (rc.mode === 'none') return emptyText;
+  if (new Date() > eventEnd(e)) return '<span class="empty">This event has passed.</span>';
+  return `<a class="${cls}" href="#account/events">${label}</a>${rc.capacity ? ' <small>Limited spots</small>' : ''}`;
+}
+
 function eventCard(e) {
   const rows = [['Date', whenText(e)], ['Time', timeText(e)], ['Location', e.location || 'To be announced']];
   return `<article class="sub ev">
@@ -18,7 +28,7 @@ function eventCard(e) {
     <dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join('')}</dl>
     <p>${esc(e.description)}</p>
     ${e.photos?.length ? `<div class="photos">${e.photos.map((p, i) => pic(p, `Promo photo ${i + 1}`, `${e.title} promotional photo ${i + 1}`)).join('')}</div>` : ''}
-    ${e.registerUrl ? `<a class="btn primary sm" href="${esc(e.registerUrl)}">Register</a>` : '<span class="empty">No registration needed.</span>'}
+    ${registerButton(e)}
     ${e.sponsors?.length ? `<div class="sponsors"><small>Sponsors</small>${e.sponsors.map(s =>
       s.logo ? `<img src="${esc(s.logo)}" alt="${esc(s.name)}">` : `<span>${esc(s.name)}</span>`).join('')}</div>` : ''}
   </article>`;
