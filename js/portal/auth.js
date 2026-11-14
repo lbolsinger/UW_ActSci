@@ -1,26 +1,26 @@
-// Passwordless sign-in: we email a link; opening it signs the person in.
-import { auth, A } from './firebase.js';
+// Passwordless sign-in: we email a 6-digit code; typing it in signs the person in.
+// (A code works better than a link here: university email security often opens links
+// automatically, which uses them up, and a code works on any device.)
+import { supabase } from './supabase.js';
 import { isMemberEmail, adminEmail } from './config.js';
-
-const KEY = 'emailForSignIn';
 
 export const allowedEmail = e => isMemberEmail(e) || e.toLowerCase() === adminEmail();
 
-export async function sendLink(email) {
+/** Emails a sign-in code. The same step creates the account for someone new. */
+export async function sendCode(email) {
   email = email.trim().toLowerCase();
   if (!allowedEmail(email)) throw new Error('Please use your @uwaterloo.ca email address.');
-  // After clicking the link, bring them back to the page they were on.
-  const url = location.origin + location.pathname + (location.hash || '#account');
-  await A.sendSignInLinkToEmail(auth, email, { url, handleCodeInApp: true });
-  localStorage.setItem(KEY, email);
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  if (error) throw error;
+  return email;
 }
-export const hasPendingLink = () => A.isSignInWithEmailLink(auth, location.href);
-export const storedEmail = () => localStorage.getItem(KEY);
 
-export async function finishLink(email) {
-  const cred = await A.signInWithEmailLink(auth, email.trim().toLowerCase(), location.href);
-  localStorage.removeItem(KEY);
-  history.replaceState(null, '', location.pathname + (location.hash || '#account'));  // tidy the address bar
-  return cred;
+/** Checks the code. On success the person is signed in on this device. */
+export async function verifyCode(email, code) {
+  const token = String(code).replace(/\s+/g, '');
+  const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'email' });
+  if (error) throw error;
+  return data;
 }
-export const signOut = () => A.signOut(auth);
+
+export const signOut = () => supabase.auth.signOut();
