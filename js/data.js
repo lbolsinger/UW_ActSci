@@ -10,11 +10,11 @@ const get = async name => {
 };
 
 export async function loadData() {
-  const [site, keyDates, events, officeHours, execTeams, resources, programs] = await Promise.all([
+  const [site, keyDates, events, officeHours, execTeams, resources, programs, portal] = await Promise.all([
     get('site'), get('key-dates'), get('events'), get('office-hours'),
-    get('execs'), get('resources'), get('programs')
+    get('execs'), get('resources'), get('programs'), get('portal')
   ]);
-  Object.assign(store, { site, keyDates, events, officeHours, execTeams, resources, programs });
+  Object.assign(store, { site, keyDates, events, officeHours, execTeams, resources, programs, portal });
 
   // office-hours.json only stores exec ids; join them to the exec details
   const execById = {};
