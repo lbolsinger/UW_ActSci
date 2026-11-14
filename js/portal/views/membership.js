@@ -35,9 +35,22 @@ function coveredByDesignation(tracks) {
   };
 }
 
+/* Groups the exam tracks for display: "SOA (ASA)" and "SOA (FSA)" become one SOA tab with an
+   ASA section and an FSA section. A track with no brackets (like "CIA / Other") is a tab on its own. */
+function examGroups(tracks) {
+  const groups = new Map();
+  for (const [key, exams] of Object.entries(tracks)) {
+    const m = key.match(/^(.*?)\s*\((.+)\)$/);
+    const group = m ? m[1] : key, sub = m ? m[2] : '';
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group).push({ sub, exams });
+  }
+  return [...groups];
+}
+
 function credentialsField(ctx, p = {}) {
   const { designations, tracks } = ctx.portal.credentials;
-  const trackNames = Object.keys(tracks);
+  const groups = examGroups(tracks);
   const selDes = p.credentials || [];
   const selExams = p.exams || [];
 
@@ -75,13 +88,15 @@ function credentialsField(ctx, p = {}) {
         <div class="cred-picker hidden" data-cred-tray="exams">
           <div class="cred-sublbl" style="margin-bottom:12px">
             <div class="track-Switch">
-              ${trackNames.map((t, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-track-btn="${esc(t)}">${esc(t)}</button>`).join('')}
+              ${groups.map(([g], i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-track-btn="${esc(g)}">${esc(g)}</button>`).join('')}
             </div>
             <button type="button" class="cred-edit-link" data-close-tray="exams">Close</button>
           </div>
-          ${trackNames.map((t, i) => `
-            <div class="${i === 0 ? '' : 'hidden'}" data-track-pane="${esc(t)}">
-              ${chips('exams', tracks[t], selExams)}
+          ${groups.map(([g, parts], i) => `
+            <div class="${i === 0 ? '' : 'hidden'}" data-track-pane="${esc(g)}">
+              ${parts.map(({ sub, exams }) => `
+                ${sub ? `<div class="cred-grp-lbl" style="font-weight:600;margin:12px 0 6px">${esc(sub)} exams</div>` : ''}
+                ${chips('exams', exams, selExams)}`).join('')}
             </div>
           `).join('')}
         </div>
