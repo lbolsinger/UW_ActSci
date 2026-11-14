@@ -3,7 +3,16 @@
   "emailListTerms": 4,
   "mentorMaxMentees": 3,
   "checkInOpensMinutesBefore": 15,
-  "years": ["1st year", "2nd year", "3rd year", "4th year", "5th year or later", "Graduate"],
-  "exams": ["P", "FM", "IFM", "SRM", "FAM", "ALTAM", "ASTAM", "PA"],
-  "mentorInterests": ["P&C", "Life", "Health", "Pensions", "Data science", "Not sure yet"]
+  "years": ["1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "5A", "5B", "Graduate"],
+  "credentials": {
+    "designations": ["ASA", "FSA", "ACAS", "FCAS", "ACIA", "FCIA", "CERA", "MAAA"],
+    "tracks": {
+      "SOA (ASA)": ["P", "FM", "SRM", "FAM", "PA", "ASTAM", "ALTAM", "ATPA", "FAP"],
+      "SOA (FSA)": ["LPM", "LFM", "LAM", "GHDP", "GHVR", "GHRM", "CFEFD", "SDM", "ERM", "QFIQF", "QFIPM", "QFIIRM", "RETDA", "RETFR", "RETRP"],
+      "CAS (ACAS)": ["P", "FM", "MAS-I", "MAS-II", "Exam 5", "Exam 6", "PCPA"],
+      "CAS (FCAS)": ["Exam 7", "Exam 8", "Exam 9"],
+      "CIA / Other": ["ACIA Capstone", "FCIA Mod 1", "FCIA Mod 2", "FCIA Capstone", "IFM"]
+    }
+  },
+  "mentorInterests": ["P&C", "Life", "Health", "Pensions", "Data science", "Insurtech", "Undecided"]
 }
