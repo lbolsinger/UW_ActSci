@@ -83,7 +83,7 @@ export function acts(root, handlers) {
 export function friendly(err) {
   const m = String(err?.code || err?.message || err);
   if (m.includes('permission-denied')) return "That wasn't allowed. If you think it should be, tell an exec.";
-  if (m.includes('unavailable') || m.includes('network')) return 'Could not reach the server. Check your connection and try again.';
+  if (m.includes('unavailable') || m.includes('network') || m.includes('Failed to fetch') || m.includes('NetworkError')) return 'Could not reach the server. Check your connection and try again.';
   return err?.message || 'Something went wrong. Please try again.';
 }
 
