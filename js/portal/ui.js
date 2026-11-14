@@ -61,7 +61,11 @@ export function collect(root) {
     out[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim();
   });
   root.querySelectorAll('[data-w="seg"]').forEach(w => { out[w.dataset.name] = w.querySelector('.on')?.dataset.val ?? null; });
-  root.querySelectorAll('[data-w="chips"]').forEach(w => { out[w.dataset.name] = [...w.querySelectorAll('.on')].map(x => x.dataset.val); });
+  root.querySelectorAll('[data-w="chips"]').forEach(w => {
+  const k = w.dataset.name;
+  const vals = [...w.querySelectorAll('.on')].map(x => x.dataset.val);
+  out[k] = out[k] ? [...new Set([...out[k], ...vals])] : vals;
+});
   root.querySelectorAll('[data-w="tog"]').forEach(w => { out[w.dataset.name] = w.classList.contains('on'); });
   root.querySelectorAll('[data-w="stars"]').forEach(w => { out[w.dataset.name] = +w.dataset.value; });
   return out;
