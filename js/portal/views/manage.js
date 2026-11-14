@@ -106,7 +106,7 @@ export async function render(root, ctx) {
     },
     async unpay() {
       if (!confirm('Undo this payment? It will show as awaiting payment again.')) return;
-      const b = batch(); addUnpaid(b, { uid: selected, termId: tid }); await b.commit(); toast('Payment undone.');
+      const b = batch(); addUnpaid(b, { uid: selected, termId: tid, directoryEntry: await read('directory', selected).catch(() => null) }); await b.commit(); toast('Payment undone.');
     },
     async renew() {
       const d = panelData(), err = validatePayment(d); if (err) return toast(err, 'err');
