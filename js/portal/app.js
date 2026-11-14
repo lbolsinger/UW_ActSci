@@ -1,7 +1,7 @@
 // The member portal: decides what to show based on who is signed in.
 import { store } from '../data.js';
-import { init, session, reload } from './session.js';
-import { hasPendingLink, finishLink, storedEmail, allowedEmail, signOut } from './auth.js';
+import { init, session } from './session.js';
+import { allowedEmail, signOut } from './auth.js';
 import { esc } from './ui.js';
 import * as signin from './views/signin.js';
 
@@ -27,18 +27,6 @@ export function cleanup() { while (cleanups.length) { try { cleanups.pop()(); } 
 
 const makeCtx = rerender => ({ term: store.portal.currentTerm, data: store, portal: store.portal, rerender, onCleanup });
 
-/** If this page load came from a sign-in email link, finish signing in. Returns true if it took over the screen. */
-async function handleLink(box) {
-  if (!hasPendingLink()) return false;
-  const email = storedEmail();
-  if (!email) { signin.confirm(box); return true; }
-  try { await finishLink(email); await reload(); return false; }
-  catch (e) {
-    signin.render(box, { error: 'That sign-in link has expired or was already used. Please request a new one.' });
-    return true;
-  }
-}
-
 function tabsFor() {
   const tabs = [];
   if (session.isMember) tabs.push(...MEMBER_TABS);
@@ -63,7 +51,6 @@ function subnavHTML(active, tabs) {
 export async function renderAccount(box, sub) {
   cleanup();
   await init();
-  if (await handleLink(box)) return;
   if (!session.user) return signin.render(box);
   if (!allowedEmail(session.email)) {
     box.innerHTML = `<div class="portal-narrow card"><h2>Use your Waterloo email</h2><p>You're signed in as <b>${esc(session.email)}</b>, but the portal is only for @uwaterloo.ca addresses.</p><a class="btn" href="#account" data-signout>Sign out</a></div>`;
@@ -87,7 +74,6 @@ export async function renderAccount(box, sub) {
 export async function renderCheckin(box, eventId) {
   cleanup();
   await init();
-  if (await handleLink(box)) return;
   if (!session.user) return signin.render(box, { note: 'Sign in to check in to this event.' });
   const mod = await import('./views/checkin-view.js');
   await mod.render(box, eventId, makeCtx(() => renderCheckin(box, eventId)));
