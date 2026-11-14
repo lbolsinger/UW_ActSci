@@ -11,6 +11,12 @@ export async function render(root, ctx) {
     root.innerHTML = `<div class="alert"><b>Register for ${esc(termLabel(ctx.term))} first.</b>Programs are for members of the current term. <a href="#account/membership">Go to My membership</a> to renew.</div>`;
     return;
   }
+  if (!membership.paid) {
+    const office = ctx.data.site.office;
+    root.innerHTML = `<h2 class="page-h">My programs</h2>
+      <div class="alert"><b>Programs are for paid members.</b>Mentorship, resume critique and mock interviews unlock once your club fee is confirmed. Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA, or in person at any club event, and an exec will confirm it. This page opens up as soon as they do.</div>`;
+    return;
+  }
   root.innerHTML = `<h2 class="page-h">My programs</h2>
     <div class="stack">
       <section class="card" id="sec-resume"></section>
