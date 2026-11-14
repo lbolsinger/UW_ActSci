@@ -20,8 +20,10 @@ export function addPaid(b, { uid, termId, method, number }) {
   }, { merge: true });
 }
 /** Undo a payment (kept in the history). */
-export function addUnpaid(b, { uid, termId }) {
+export function addUnpaid(b, { uid, termId, directoryEntry }) {
   const id = `${uid}_${termId}`;
+  // Programs are for paid members, so an unpaid mentor loses the Mentor badge too.
+  if (directoryEntry?.isMentor) b.update(ref('directory', uid), { isMentor: false });
   b.update(ref('memberships', id), { paid: false, paidAt: F.deleteField() });
   b.set(ref('payments', id), {
     history: F.arrayUnion({ action: 'unpaid', by: session.displayName, byEmail: session.email, at: Date.now() })
