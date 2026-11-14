@@ -36,7 +36,7 @@ export async function render(root, ctx) {
               <td class="hint">${esc(g.comments.sort((a, b) => (toDate(b.updatedAt) || 0) - (toDate(a.updatedAt) || 0))[0]?.comment || '')}</td></tr>`).join('') || '<tr><td colspan="5" class="hint">No ratings yet.</td></tr>'}</tbody></table></div></section>
         <section class="card"><div class="sec-h">Account deletion requests</div>
           ${dels.length ? `<table class="m"><tbody>${dels.map(d => `<tr data-id="${esc(d.id)}"><td><b>${esc(d.name || '')}</b><small>${esc(d.email)} · asked ${esc(fmtDay(toDate(d.at)))}</small></td><td style="text-align:right"><a href="#" class="btn sm" data-act="deldone">Mark done</a></td></tr>`).join('')}</tbody></table>
-          <p class="hint" style="margin:10px 0 0">To delete someone: remove their records in the Firebase console (Firestore Database), then press "Mark done". SETUP.md explains which collections to clear.</p>` : '<p class="hint" style="margin:0">None right now.</p>'}</section>
+          <p class="hint" style="margin:10px 0 0">To delete someone: remove their records in the Supabase dashboard (SQL Editor), then press "Mark done". SUPABASE_SETUP.md has the exact steps.</p>` : '<p class="hint" style="margin:0">None right now.</p>'}</section>
       </div></div>`;
 
   function drawExecs() {
