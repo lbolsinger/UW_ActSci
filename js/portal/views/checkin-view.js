@@ -28,7 +28,7 @@ export async function render(box, eventId, ctx) {
 
   if (existing) return success(toDate(existing.at), 'You were already checked in.');
   if (!m) { box.innerHTML = card(`Renew for ${esc(termLabel(ctx.term))}`, `<p>Your membership isn't registered for this term yet. <a href="#account">Renew here</a>, or see an exec at the door.</p>`); return; }
-  if (!m.paid) { box.innerHTML = card('See an exec to pay', `<p>You're registered, but your club fee hasn't been confirmed yet. An exec can take your payment and sign you in at the door.</p>`); return; }
+  if (!m.paid) { box.innerHTML = card('Payment required', `<p><b>You need to pay the club fee before you can sign in to events.</b> You're registered, but your payment hasn't been confirmed yet.</p><p>Pay in cash${ctx.data.site.office ? ` at the club office (${esc(ctx.data.site.office)})` : ''} or through WUSA, or see an exec at the door. They can take your payment and sign you in.</p>`, 'alert'); return; }
   if (!isOpen(ev, ctx.portal.checkInOpensMinutesBefore)) {
     const w = eventWindow(ev, ctx.portal.checkInOpensMinutesBefore);
     box.innerHTML = card('Check-in isn\'t open', `<p><b>${esc(ev.title)}</b> check-in opens at ${esc(fmtTime(w.opens))} and closes when the event ends at ${esc(fmtTime(w.end))}.</p>`); return;
