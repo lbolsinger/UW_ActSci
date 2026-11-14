@@ -1,7 +1,7 @@
 // The member directory: name, year and whatever each member chose to share.
-import { list, col, where } from '../../db.js';
-import { esc, fresh, bindWidgets, seg, initials } from '../../ui.js';
-import { termId } from '../../terms.js';
+import { list, col, where } from '../db.js';
+import { esc, fresh, bindWidgets, seg, initials } from '../ui.js';
+import { termId } from '../terms.js';
 
 const SECONDARY_DESIGNATIONS = new Set(['CERA', 'MAAA']);
 
