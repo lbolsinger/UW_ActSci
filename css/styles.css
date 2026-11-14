@@ -13,7 +13,7 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body)}
 h1,h2,h3,h4{font-family:var(--head);line-height:1.15;margin:0 0 .5em;letter-spacing:-.01em}
 h2{font-size:1.6rem;font-weight:800} h3{font-size:1.2rem;font-weight:600} h4{font-size:1rem;font-weight:600}
-p{margin:0 0 1em;max-width:72ch}
+p{margin:0 0 1em;max-width:none}
 a{color:var(--focus);text-decoration-color:var(--gold);text-decoration-thickness:2px;text-underline-offset:3px}
 img{max-width:100%;display:block}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
