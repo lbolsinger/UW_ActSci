@@ -1,5 +1,5 @@
 // Who is signed in, and what are they allowed to see?
-import { auth, A } from './firebase.js';
+import { supabase } from './supabase.js';
 import { read } from './db.js';
 import { adminEmail, isMemberEmail } from './config.js';
 
@@ -9,30 +9,30 @@ export const session = {
 };
 
 let started;
-async function load(user) {
-  session.user = user;
-  session.email = (user?.email || '').toLowerCase();
+async function load(authUser) {
+  // The pages use session.user.uid, so we keep that name.
+  session.user = authUser ? { uid: authUser.id, email: authUser.email } : null;
+  session.email = (authUser?.email || '').toLowerCase();
   session.profile = null;
-  session.isAdmin = !!user && session.email === adminEmail();
-  session.isMember = !!user && isMemberEmail(session.email);
+  session.isAdmin = !!authUser && session.email === adminEmail();
+  session.isMember = !!authUser && isMemberEmail(session.email);
   session.isExec = session.isAdmin;
   session.displayName = '';
-  if (!user) return;
+  if (!authUser) return;
   if (session.isMember) {
-    session.profile = await read('users', user.uid);
+    session.profile = await read('users', authUser.id);
     if (!session.isExec) session.isExec = !!(await read('execs', session.email));
   }
   session.displayName = session.profile?.name || session.email;
 }
 
-/** Resolves once Firebase has worked out whether someone is signed in. */
+const currentUser = async () => (await supabase.auth.getSession()).data.session?.user ?? null;
+
+/** Resolves once we have worked out whether someone is signed in. */
 export function init() {
-  started ??= new Promise(resolve => {
-    A.onAuthStateChanged(auth, async user => {
-      try { await load(user); } catch (e) { console.error(e); }
-      resolve();
-    });
-  });
+  started ??= (async () => {
+    try { await load(await currentUser()); } catch (e) { console.error(e); }
+  })();
   return started;
 }
-export const reload = () => load(auth.currentUser);
+export const reload = async () => load(await currentUser());
