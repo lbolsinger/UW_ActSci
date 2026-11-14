@@ -9,7 +9,7 @@ export function render(box, { note = '', error = '' } = {}) {
     <h2>Sign in to the member portal</h2>
     ${note ? `<div class="alert"><b>${esc(note)}</b></div>` : ''}
     ${error ? `<div class="alert err">${esc(error)}</div>` : ''}
-    <p>Use your <b>@uwaterloo.ca</b> email. We'll email you a 6-digit code, so there's no password to remember. New here? The same code creates your account.</p>
+    <p>Use your <b>@uwaterloo.ca</b> email. We'll email you an 8-digit code, so there's no password to remember. New here? The same code creates your account.</p>
     <form id="signin-form" novalidate>
       <div class="field"><label for="signin-email">Waterloo email</label>
         <input id="signin-email" name="email" type="email" autocomplete="email" placeholder="you@uwaterloo.ca" required>
@@ -36,7 +36,7 @@ function enterCode(box, email) {
     <p>We sent a 6-digit code to <b>${esc(email)}</b>. It can take a minute to arrive, and it sometimes lands in spam or junk.</p>
     <form id="code-form" novalidate>
       <div class="field"><label for="signin-code">Sign-in code</label>
-        <input id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="123456" required>
+        <input id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="12345678" required>
         <small>The code works for about an hour and can be used once.</small></div>
       <button class="btn primary block" type="submit">Sign in</button>
     </form>
@@ -48,7 +48,7 @@ function enterCode(box, email) {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const code = form.code.value.trim();
-    if (!/^\d{6,10}$/.test(code.replace(/\s+/g, ''))) return toast('Type the 6-digit code from the email.', 'err');
+    if (!/^\d{6,10}$/.test(code.replace(/\s+/g, ''))) return toast('Type the 8-digit code from the email.', 'err');
     const btn = form.querySelector('button'); btn.disabled = true; btn.textContent = 'Signing in…';
     try { await verifyCode(email, code); location.reload(); }
     catch (err) {
