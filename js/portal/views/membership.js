@@ -1,10 +1,10 @@
 // "My membership": registration, renewal, details, public profile, email preference.
-import { session, reload } from '../session.js';
-import { read, list, col, ref, db, F, stamp, where, batch } from '../db.js';
-import { esc, fresh, acts, bindWidgets, collect, seg, chips, toggle, badge, toast, toDate, fmtDay, fmtTime } from '../ui.js';
-import { termId, termLabel, labelFromId, termOrder } from '../terms.js';
-import { isOpen, selfCheckIn } from '../checkin-core.js';
-import { signOut } from '../auth.js';
+import { session, reload } from '../../session.js';
+import { read, list, col, ref, db, F, stamp, where, batch } from '../../db.js';
+import { esc, fresh, acts, bindWidgets, collect, seg, chips, toggle, badge, toast, toDate, fmtDay, fmtTime } from '../../ui.js';
+import { termId, termLabel, labelFromId, termOrder } from '../../terms.js';
+import { isOpen, selfCheckIn } from '../../checkin-core.js';
+import { signOut } from '../../auth.js';
 
 export async function render(root, ctx) {
   const v = fresh(root);
