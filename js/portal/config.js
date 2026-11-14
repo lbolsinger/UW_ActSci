@@ -7,12 +7,12 @@
 // ============================================================================
 
 // From the Supabase dashboard: Project Settings > API (or the "Connect" button).
-export const SUPABASE_URL = "PASTE_PROJECT_URL";            // like https://abcdefgh.supabase.co
-export const SUPABASE_ANON_KEY = "PASTE_PUBLIC_KEY";        // the "anon" or "publishable" key. NEVER the service_role / secret key.
+export const SUPABASE_URL = "https://kjijxlqastzrqlbqqwip.supabase.co";            // like https://abcdefgh.supabase.co
+export const SUPABASE_ANON_KEY = "sb_publishable_xINUM-T8FA2C6-5L6yoWXA_1jaWnj0B";        // the "anon" or "publishable" key. NEVER the service_role / secret key.
 
 // The club's email account. It must also be typed into supabase/schema.sql,
 // in the app_admin_email() function.
-export const ADMIN_EMAIL = "lucy.bollinger.spam@gmail.com";
+export const ADMIN_EMAIL = "lisa.bolsinger06@gmail.com";
 
 // Only members with this email ending can register.
 export const MEMBER_EMAIL_ENDING = "@uwaterloo.ca";
