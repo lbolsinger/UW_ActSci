@@ -3,9 +3,11 @@ import { store } from '../data.js';
 
 function simpleProgram(id) {
   const p = store.programs[id];
+  // Signing up happens inside the member's account. A Volunteer button only shows if a real link is set.
+  const volunteer = p.volunteerUrl && p.volunteerUrl !== '#'
+    ? `\n    <a class="btn" href="${esc(p.volunteerUrl)}">Volunteer</a>` : '';
   return `<section class="card" id="${id}"><h2>${esc(p.title)}</h2>${p.text.map(t => `<p>${esc(t)}</p>`).join('')}
-    <div class="btnrow"><a class="btn primary" href="${esc(p.participantUrl)}">Sign up as a participant</a>
-    <a class="btn" href="${esc(p.volunteerUrl)}">Volunteer</a></div></section>`;
+    <div class="btnrow"><a class="btn primary" href="${esc(p.participantUrl)}">${esc(p.buttonLabel || 'Sign up in your account')}</a>${volunteer}</div></section>`;
 }
 
 export function render() {
