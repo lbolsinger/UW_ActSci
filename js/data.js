@@ -1,5 +1,6 @@
 // Loads every JSON file in /data once, and exposes helpers built on top of them.
 import { iso, parse, addDays } from './utils.js';
+import { defaultEventId } from './portal/eventreg-core.js';
 
 export const store = {};   // filled by loadData()
 
@@ -14,6 +15,9 @@ export async function loadData() {
     get('site'), get('key-dates'), get('events'), get('office-hours'),
     get('execs'), get('resources'), get('programs'), get('portal')
   ]);
+  // Check-in, attendance and event sign-up all identify an event by its id. Use the one in events.json if there
+  // is one, otherwise make a stable one from the title and date.
+  events.forEach(e => { e.id ||= defaultEventId(e); });
   Object.assign(store, { site, keyDates, events, officeHours, execTeams, resources, programs, portal });
 
   // office-hours.json only stores exec ids; join them to the exec details

@@ -33,7 +33,7 @@ function enterCode(box, email) {
   box.innerHTML = `
   <div class="portal-narrow card">
     <h2>Check your email</h2>
-    <p>We sent a 6-digit code to <b>${esc(email)}</b>. It can take a minute to arrive, and it sometimes lands in spam or junk.</p>
+    <p>We sent a 8-digit code to <b>${esc(email)}</b>. It can take a minute to arrive, and it sometimes lands in spam or junk.</p>
     <form id="code-form" novalidate>
       <div class="field"><label for="signin-code">Sign-in code</label>
         <input id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="12345678" required>

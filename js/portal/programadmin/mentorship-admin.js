@@ -1,14 +1,15 @@
 // Mentorship: see who needs a match, suggest mentors, create and remove pairs.
-import { F, col, ref, read, watch, where, batch, stamp } from '../db.js';
+import { F, col, ref, read, list, watch, where, batch, stamp } from '../db.js';
 import { esc, fresh, acts, badge, toast } from '../ui.js';
-import { termId } from '../terms.js';
+import { termId, labelFromId, termOrder } from '../terms.js';
 
 export async function render(root, ctx) {
   const v = fresh(root);
   const tid = termId(ctx.term), max = ctx.portal.mentorMaxMentees, years = ctx.portal.years;
   let profiles = [], pairs = [], selected = null;
   v.innerHTML = `<div class="stats" id="mstats"></div><div class="cols2"><div id="mentees"></div><aside id="suggest"></aside></div>
-    <section class="card" style="margin-top:18px"><div class="sec-h">Current pairs</div><div id="pairs"></div></section>`;
+    <section class="card" style="margin-top:18px"><div class="sec-h">Current pairs</div><div id="pairs"></div></section>
+    <section class="card" style="margin-top:18px"><div class="sec-h">Earlier terms</div><div id="past"><p class="hint" style="margin:0">Loading…</p></div></section>`;
 
   const tags = (list, cls = '') => (list || []).map(x => `<span class="mtag ${cls}">${esc(x)}</span>`).join('');
   const mentors = () => profiles.filter(p => p.role === 'mentor'), mentees = () => profiles.filter(p => p.role === 'mentee');
@@ -62,6 +63,15 @@ export async function render(root, ctx) {
       await b.commit(); toast('Unpaired.');
     }
   });
+  // Pairings from earlier terms, for reference when matching. Each is labeled with its term, so it's clear they aren't current.
+  list(col('pairings')).then(all => {
+    const old = all.filter(p => p.termId && p.termId !== tid), by = {};
+    old.forEach(p => (by[p.termId] ||= []).push(p));
+    const ids = Object.keys(by).sort((a, b) => termOrder(b) - termOrder(a));
+    v.querySelector('#past').innerHTML = ids.length ? ids.map(t => `<div class="lbl" style="margin:12px 0 6px">${esc(labelFromId(t))} pairings <span class="hint" style="font-weight:400">· past term, not current</span></div>
+      <table class="m"><thead><tr><th>Mentor</th><th>Mentee</th></tr></thead><tbody>${by[t].map(p => `<tr><td>${esc(p.mentorName)}</td><td>${esc(p.menteeName)}</td></tr>`).join('')}</tbody></table>`).join('')
+      : '<p class="hint" style="margin:0">No earlier pairings are kept. Pairings are cleared after the same number of terms as the email list.</p>';
+  }).catch(() => { v.querySelector('#past').innerHTML = '<p class="hint" style="margin:0">Couldn\'t load earlier terms.</p>'; });
   ctx.onCleanup(watch(col('mentorProfiles'), [where('termId', '==', tid)], d => { profiles = d; draw(); }));
   ctx.onCleanup(watch(col('pairings'), [where('termId', '==', tid)], d => { pairs = d; draw(); }));
 }

@@ -119,6 +119,7 @@ begin
     when p_coll = 'payments'          then app_is_exec()
     when p_coll = 'attendance'        then app_is_exec() or (app_is_member() and p_data ->> 'uid' = me)
     when p_coll = 'directory'         then app_is_member() or app_is_exec()
+    when p_coll = 'eventRegistrations' then app_is_exec() or (app_is_member() and p_data ->> 'uid' = me)
     when p_coll = 'resumeRequests'    then app_is_exec() or (app_is_member() and p_data ->> 'uid' = me)
     when p_coll like 'resumeRequests/%/comments'
                                       then app_is_exec() or (app_is_member() and app_comment_owner_is_me(p_coll))
@@ -170,6 +171,27 @@ create or replace function public.app_valid_link(v jsonb) returns boolean
 language sql immutable as $$
   select coalesce(jsonb_typeof(v) = 'string' and (v #>> '{}') ~ '^https?://' and char_length(v #>> '{}') <= 600, false)
 $$;
+
+-- Event sign-up helpers. An answer is a short piece of text or yes/no, and a few of them at most.
+create or replace function public.app_valid_answers(a jsonb) returns boolean
+language sql immutable as $$
+  select coalesce(a is null or (
+        jsonb_typeof(a) = 'object'
+    and (select count(*) from jsonb_object_keys(a)) <= 15
+    and not exists (select 1 from jsonb_each(a) e
+                    where char_length(e.key) > 60
+                       or not (jsonb_typeof(e.value) = 'boolean'
+                               or (jsonb_typeof(e.value) = 'string' and char_length(e.value #>> '{}') <= 500)))), false)
+$$;
+
+-- Is this timestamp (text) within two minutes of the server's clock? Stops anyone back-dating a sign-up to jump the queue.
+create or replace function public.app_just_now(v jsonb) returns boolean
+language plpgsql stable as $$
+begin
+  return abs(extract(epoch from (now() - (v #>> '{}')::timestamptz))) < 120;
+exception when others then
+  return false;
+end $$;
 
 create or replace function public.app_valid_user(p_id text, d jsonb) returns boolean
 language sql stable as $$
@@ -259,12 +281,15 @@ begin
     else
       ok := (v_member and p_id = me) or v_exec;
     end if;
+    -- An exec may also switch off the Mentor badge (used when a payment is undone).
+    if p_op = 'update' and v_exec and p_new -> 'isMentor' = 'false'::jsonb then ok := true; end if;
 
+  -- Programs (resume critique, mock interviews, mentorship) are for members who have paid.
   elsif p_coll = 'resumeRequests' then
     if p_op = 'create' then
       ok := v_member and p_new ->> 'uid' = me and p_new ->> 'status' = 'new'
             and app_valid_link(p_new -> 'link')
-            and app_has_membership(p_new ->> 'termId')
+            and app_paid_membership(p_new ->> 'termId')
             and not (p_new ? 'reviewerEmail');
     elsif p_op = 'update' then
       ok := v_exec or (v_member and p_old ->> 'uid' = me
@@ -290,7 +315,7 @@ begin
     if p_op = 'create' then
       ok := v_member and p_new ->> 'uid' = me
             and p_id = coalesce(p_new ->> 'sessionId', '') || '_' || me
-            and app_has_membership(p_new ->> 'termId')
+            and app_paid_membership(p_new ->> 'termId')
             and not (p_new ? 'feedback');
     elsif p_op = 'update' then
       ok := v_exec;
@@ -317,7 +342,7 @@ begin
             and p_new ->> 'role' in ('mentor', 'mentee')
             and app_num(p_new -> 'menteeCount') = 0
             and cap between 1 and 3
-            and app_has_membership(p_new ->> 'termId');
+            and app_paid_membership(p_new ->> 'termId');
     elsif p_op = 'update' then
       ok := (v_member and p_old ->> 'uid' = me
              and ch <@ array['name', 'year', 'workTerm', 'interests', 'coop', 'goals', 'linkedin', 'meet', 'availability', 'capacity']
@@ -333,6 +358,23 @@ begin
       ok := v_exec and p_id = coalesce(p_new ->> 'termId', '') || '_' || coalesce(p_new ->> 'mentorUid', '') || '_' || coalesce(p_new ->> 'menteeUid', '');
     elsif p_op = 'delete' then
       ok := v_exec;
+    end if;
+
+  elsif p_coll = 'eventRegistrations' then       -- id = eventId_uid. Any member can sign up; only execs can remove other people.
+    if p_op = 'create' then
+      ok := v_member and p_new ->> 'uid' = me
+            and p_id = coalesce(p_new ->> 'eventId', '') || '_' || me
+            and char_length(coalesce(p_new ->> 'eventId', '')) between 1 and 120
+            and p_new ->> 'email' = em
+            and app_short(p_new -> 'name', 100)
+            and app_short(coalesce(p_new -> 'eventTitle', '""'::jsonb), 200)
+            and app_has_membership(p_new ->> 'termId')
+            and app_valid_answers(p_new -> 'answers')
+            and app_just_now(p_new -> 'registeredAt');
+    elsif p_op = 'update' then                   -- a member can change their answers, nothing else
+      ok := v_member and p_old ->> 'uid' = me and ch <@ array['answers'] and app_valid_answers(p_new -> 'answers');
+    else
+      ok := (v_member and p_old ->> 'uid' = me) or v_exec;
     end if;
 
   elsif p_coll = 'deletionRequests' then
@@ -479,9 +521,24 @@ returns jsonb language sql stable security invoker set search_path = public as $
                     where d.data ->> (f ->> 'field') is distinct from (f ->> 'value'))
 $$;
 
+-- Who is in line for each event, without names: just the time each person signed up, in order, and which one is yours.
+-- The website uses it to work out "you're in" vs "you're #3 on the waitlist". Members can't read other people's sign-ups.
+create or replace function public.event_queues(p_events text[]) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select case when app_uid() is null or not (app_is_member() or app_is_exec()) then '{}'::jsonb else
+    coalesce((select jsonb_object_agg(e.eid, e.q) from (
+      select ev as eid, coalesce((
+        select jsonb_agg(jsonb_build_object('at', d.data ->> 'registeredAt', 'mine', d.data ->> 'uid' = app_uid())
+                         order by d.data ->> 'registeredAt', d.id)
+        from docs d where d.collection = 'eventRegistrations' and d.data ->> 'eventId' = ev), '[]'::jsonb) as q
+      from unnest(p_events) ev) e), '{}'::jsonb) end
+$$;
+
 revoke all on function public.apply_ops(jsonb) from public, anon;
 revoke all on function public.query_docs(text, jsonb, text) from public, anon;
 grant execute on function public.apply_ops(jsonb) to authenticated;
+revoke all on function public.event_queues(text[]) from public, anon;
+grant execute on function public.event_queues(text[]) to authenticated;
 grant execute on function public.query_docs(text, jsonb, text) to authenticated;
 
 -- ------------------------------------------------- optional but recommended: sign-up filter
@@ -490,7 +547,7 @@ grant execute on function public.query_docs(text, jsonb, text) to authenticated;
 -- After running this file, switch it on in the dashboard:
 --   Authentication > Hooks > Before User Created > Postgres function > public.hook_before_user_created
 create or replace function public.hook_before_user_created(event jsonb) returns jsonb
-language plpgsql stable as $$
+language plpgsql stable set search_path = public as $$
 declare e text := lower(coalesce(event -> 'user' ->> 'email', ''));
 begin
   if right(e, length(public.app_member_ending())) = public.app_member_ending() or e = lower(public.app_admin_email()) then
