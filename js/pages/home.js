@@ -59,8 +59,17 @@ export function render() {
         <figcaption>This year's executive team. <a href="#execs">Meet everyone</a></figcaption>
       </figure>
       <section class="cta">
-        <div><h2>Join the club</h2><p>Membership is free for students and gives you access to every event and program.</p></div>
+        <div><h2>Join the club</h2><p><b>Membership is $5 per term and is open to MathSoc members only.</b> It gives you access to club events, programs and exam discounts.</p></div>
         <a class="btn primary" href="${esc(site.registerUrl)}">Register now</a>
+      </section>
+      <section class="card" aria-labelledby="howH">
+        <h2 id="howH">How membership works</h2>
+        <ol class="howstrip">
+          <li><b>1. Sign in and register</b>Use your @uwaterloo.ca email on the Account tab. You must be a MathSoc member.</li>
+          <li><b>2. Pay $5 per term</b>Pay in cash to an exec, or through WUSA and enter your 6-digit confirmation number.</li>
+          <li><b>3. Get started</b>WUSA payers get a three-week trial for events. Programs and discount codes unlock once an exec confirms payment.</li>
+        </ol>
+        <a class="btn" href="#guide">Read the member guide</a>
       </section>
       ${nextEventCard()}
     </div>
