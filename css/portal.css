@@ -138,7 +138,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);border-col
 /* ---- exec tools ---- */
 .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .bar h2{margin:0;margin-right:auto}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px}
 @media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
 .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .stat b{display:block;font:800 1.9rem/1 var(--head)}.stat span{color:var(--muted);font-size:.88rem}
@@ -183,3 +183,19 @@ table.m small{display:block;color:var(--muted)}
 .pv>.checkrow,.checkrow{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin-bottom:14px}
 .mono{font-variant-numeric:tabular-nums}
 .hidden{display:none !important}
+
+/* payment states */
+.b-flag{background:#FBDADA;color:#7A1414}.b-trial{background:#DCEBFA;color:#12395F}
+.alert.ok{background:#E6F2FB;border-color:#B3D2EC}
+.wusa-form label{font-weight:600;display:block;margin-bottom:4px}
+.wusa-form .inline-f{display:flex;gap:8px;max-width:340px}.wusa-form .inline-f input{flex:1;min-width:0}
+.wusa-form small{display:block;margin-top:6px}
+
+/* profile: co-op rows, contact heading */
+.field-h{font-family:var(--head);font-weight:700;margin:18px 0 8px}
+.coop-rows{display:grid;gap:8px;margin-top:8px}
+.coop-row{display:grid;grid-template-columns:150px 1fr 1fr;gap:8px}
+.coop-row input{min-width:0}
+@media(max-width:620px){.coop-row{grid-template-columns:1fr}}
+.pcard .tags{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.pcard .coops{margin:6px 0;padding-left:16px;font-size:.92em}
