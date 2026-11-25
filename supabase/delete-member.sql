@@ -25,7 +25,8 @@ begin
   -- mentorship pairings, then fix every mentor's mentee count
   delete from public.docs where collection = 'pairings' and (data ->> 'mentorUid' = v_uid or data ->> 'menteeUid' = v_uid);
 
-  -- everything else with their id on it: membership, attendance, directory, resume requests, mentor profile...
+  -- everything else with their id on it: membership, attendance, directory, resume requests, mentor profile,
+  -- discount-code request log...
   delete from public.docs where data ->> 'uid' = v_uid and collection <> 'payments';
   delete from public.docs where collection in ('users', 'directory', 'deletionRequests') and id = v_uid;
 
