@@ -1,18 +1,119 @@
 {
-  "currentTerm": { "season": "Fall", "year": 2026 },
+  "currentTerm": {
+    "season": "Fall",
+    "year": 2026
+  },
   "emailListTerms": 4,
   "mentorMaxMentees": 3,
   "checkInOpensMinutesBefore": 15,
-  "years": ["1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "5A", "5B", "Graduate"],
+  "years": [
+    "1A",
+    "1B",
+    "2A",
+    "2B",
+    "3A",
+    "3B",
+    "4A",
+    "4B",
+    "5A",
+    "5B",
+    "Graduate"
+  ],
   "credentials": {
-    "designations": ["ASA", "FSA", "ACAS", "FCAS", "ACIA", "FCIA", "CERA", "MAAA"],
+    "designations": [
+      "ASA",
+      "FSA",
+      "ACAS",
+      "FCAS",
+      "ACIA",
+      "FCIA",
+      "CERA",
+      "MAAA"
+    ],
     "tracks": {
-      "SOA (ASA)": ["P", "FM", "SRM", "FAM", "PA", "ASTAM", "ALTAM", "ATPA", "FAP"],
-      "SOA (FSA)": ["LPM", "LFM", "LAM", "GHDP", "GHVR", "GHRM", "CFEFD", "SDM", "ERM", "QFIQF", "QFIPM", "QFIIRM", "RETDA", "RETFR", "RETRP"],
-      "CAS (ACAS)": ["P", "FM", "MAS-I", "MAS-II", "Exam 5", "Exam 6", "PCPA", "DISCs"],
-      "CAS (FCAS)": ["Exam 7", "Exam 8", "Exam 9"],
-      "CIA / Other": ["ACIA Capstone", "FCIA Mod 1", "FCIA Mod 2", "FCIA Capstone", "IFM"]
+      "SOA (ASA)": [
+        "P",
+        "FM",
+        "SRM",
+        "FAM",
+        "PA",
+        "ASTAM",
+        "ALTAM",
+        "ATPA",
+        "FAP"
+      ],
+      "SOA (FSA)": [
+        "LPM",
+        "LFM",
+        "LAM",
+        "GHDP",
+        "GHVR",
+        "GHRM",
+        "CFEFD",
+        "SDM",
+        "ERM",
+        "QFIQF",
+        "QFIPM",
+        "QFIIRM",
+        "RETDA",
+        "RETFR",
+        "RETRP"
+      ],
+      "CAS (ACAS)": [
+        "P",
+        "FM",
+        "MAS-I",
+        "MAS-II",
+        "Exam 5",
+        "Exam 6",
+        "PCPA",
+        "DISCs"
+      ],
+      "CAS (FCAS)": [
+        "Exam 7",
+        "Exam 8",
+        "Exam 9"
+      ],
+      "CIA / Other": [
+        "ACIA Capstone",
+        "FCIA Mod 1",
+        "FCIA Mod 2",
+        "FCIA Capstone",
+        "IFM"
+      ]
     }
   },
-  "mentorInterests": ["P&C", "Life", "Health", "Pensions", "Data science", "Insurtech", "Undecided"]
+  "mentorInterests": [
+    "Life",
+    "Pension",
+    "Health",
+    "P&C",
+    "Consulting",
+    "Insurtech"
+  ],
+  "interests": [
+    "Life",
+    "Pension",
+    "Health",
+    "P&C",
+    "Consulting",
+    "Insurtech"
+  ],
+  "skills": [
+    "Axis",
+    "MG-ALFA",
+    "Pathwise",
+    "Excel",
+    "R",
+    "SQL",
+    "SAS",
+    "Python"
+  ],
+  "programs": [
+    "Actuarial Science",
+    "Statistics",
+    "Honours Math",
+    "Double Degree",
+    "Other"
+  ]
 }
