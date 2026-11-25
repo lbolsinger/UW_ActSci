@@ -81,6 +81,20 @@ language sql stable security definer set search_path = public as $$
                    and data -> 'paid' = 'true'::jsonb)
 $$;
 
+-- Who may sign in to events (check-in): paid members, plus members in their WUSA trial period.
+-- The trial is for members who entered a WUSA confirmation number that is still waiting to be
+-- verified. It ends at "verifyBy" (3 weeks after they entered it), and stops at once if the
+-- membership is flagged. Programs and discount codes still need a fully paid membership.
+create or replace function public.app_event_access(p_term text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from docs
+                 where collection = 'memberships' and id = app_uid() || '_' || p_term
+                   and (data -> 'paid' = 'true'::jsonb
+                        or (data ->> 'payStatus' = 'confirming'
+                            and coalesce(data ->> 'flagged', 'false') <> 'true'
+                            and (data ->> 'verifyBy')::timestamptz > now())))
+$$;
+
 create or replace function public.app_is_paired(p_term text, p_other text) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from docs where collection = 'pairings'
@@ -133,6 +147,10 @@ begin
     when p_coll = 'pairings'          then app_is_exec()
                                            or (app_is_member() and (p_data ->> 'mentorUid' = me or p_data ->> 'menteeUid' = me))
     when p_coll = 'deletionRequests'  then app_is_admin()
+    -- Discount codes live only here, never in the public repository. Only the club account can read
+    -- them directly; members get one through request_discount_code(), which logs who asked.
+    when p_coll = 'discountCodes'     then app_is_admin()
+    when p_coll = 'codeRequests'      then app_is_exec()
     else false end, false);
 end $$;
 
@@ -184,6 +202,39 @@ language sql immutable as $$
                                or (jsonb_typeof(e.value) = 'string' and char_length(e.value #>> '{}') <= 500)))), false)
 $$;
 
+-- A list of short strings (interests, skills): at most p_max items of at most p_len characters. Missing is fine.
+create or replace function public.app_str_list(v jsonb, p_max int, p_len int) returns boolean
+language sql immutable as $$
+  select coalesce(v is null or (jsonb_typeof(v) = 'array' and jsonb_array_length(v) <= p_max
+    and not exists (select 1 from jsonb_array_elements(v) e
+                    where jsonb_typeof(e) <> 'string' or char_length(e #>> '{}') > p_len)), false)
+$$;
+
+-- Co-op history: up to 10 entries of { date, company, role }. Missing is fine.
+create or replace function public.app_valid_coops(v jsonb) returns boolean
+language sql immutable as $$
+  select coalesce(v is null or (jsonb_typeof(v) = 'array' and jsonb_array_length(v) <= 10
+    and not exists (select 1 from jsonb_array_elements(v) e
+                    where jsonb_typeof(e) <> 'object'
+                       or not app_short(e -> 'date', 20)
+                       or not app_short(e -> 'company', 100)
+                       or not app_short(e -> 'role', 100))), false)
+$$;
+
+-- The optional profile fields shared by a user's record and their directory entry.
+create or replace function public.app_valid_profile_extras(d jsonb) returns boolean
+language sql immutable as $$
+  select coalesce(
+        app_str_list(d -> 'interests', 12, 40)
+    and app_str_list(d -> 'programs', 8, 40)
+    and app_str_list(d -> 'skills', 15, 40)
+    and app_valid_coops(d -> 'coops')
+    and (d -> 'coopCount' is null or app_is_int(d -> 'coopCount'))
+    and app_short(coalesce(d -> 'otherInterest', '""'::jsonb), 100)
+    and app_short(coalesce(d -> 'contactEmail', '""'::jsonb), 200)
+    and app_short(coalesce(d -> 'website', '""'::jsonb), 300), false)
+$$;
+
 -- Is this timestamp (text) within two minutes of the server's clock? Stops anyone back-dating a sign-up to jump the queue.
 create or replace function public.app_just_now(v jsonb) returns boolean
 language plpgsql stable as $$
@@ -204,6 +255,9 @@ language sql stable as $$
     and app_short(coalesce(d -> 'dietary', '""'::jsonb), 300)
     and app_short(coalesce(d -> 'linkedin', '""'::jsonb), 300)
     and app_short(coalesce(d -> 'coopExperience', '""'::jsonb), 1000)
+    and app_short(coalesce(d -> 'firstName', '""'::jsonb), 50)
+    and app_short(coalesce(d -> 'lastName', '""'::jsonb), 50)
+    and app_valid_profile_extras(d)
     and jsonb_typeof(coalesce(d -> 'exams', '[]'::jsonb)) = 'array'
     and app_is_bool(d -> 'directoryVisible') and app_is_bool(d -> 'emailOptIn'), false)
 $$;
@@ -247,7 +301,10 @@ begin
                        and p_id = me || '_' || coalesce(p_new ->> 'termId', '')
                        and p_new ->> 'email' = em
                        and p_new -> 'paid' = 'false'::jsonb
-                       and not (p_new ? 'paidAt'));
+                       and not (p_new ? 'paidAt')
+                       -- payment progress is set by execs or by submit_wusa_payment(), never by the member
+                       and not (p_new ?| array['payStatus', 'trialUsed', 'verifyBy', 'wusaSubmittedAt',
+                                               'flagged', 'flagReason', 'flaggedAt']));
     elsif p_op = 'update' then
       ok := v_exec or (v_member and p_old ->> 'uid' = me and ch <@ array['year', 'workTerm', 'dietary', 'name']);
     else
@@ -263,7 +320,7 @@ begin
                        and p_new ->> 'method' in ('self', 'qr')
                        and p_id = coalesce(p_new ->> 'eventId', '') || '_' || me
                        and p_new ->> 'email' = em
-                       and app_paid_membership(p_new ->> 'termId'));
+                       and app_event_access(p_new ->> 'termId'));
     else
       ok := v_exec;
     end if;
@@ -274,6 +331,7 @@ begin
             and app_short(p_new -> 'name', 100)
             and app_short(coalesce(p_new -> 'linkedin', '""'::jsonb), 300)
             and app_short(coalesce(p_new -> 'coopExperience', '""'::jsonb), 1000)
+            and app_valid_profile_extras(p_new)
             and (p_new -> 'isMentor' = 'false'::jsonb
                  or exists (select 1 from docs where collection = 'mentorProfiles'
                             and id = me || '_' || coalesce(p_new ->> 'termId', '')
@@ -383,6 +441,20 @@ begin
     else
       ok := v_admin;
     end if;
+
+  elsif p_coll = 'discountCodes' then            -- club account only; id is a short slug like "actex"
+    if p_op in ('create', 'update') then
+      ok := v_admin and p_id ~ '^[a-z0-9-]{1,40}$'
+            and app_short(p_new -> 'label', 80) and char_length(p_new ->> 'label') > 0
+            and app_short(p_new -> 'code', 100) and char_length(p_new ->> 'code') > 0
+            and app_short(coalesce(p_new -> 'note', '""'::jsonb), 400)
+            and app_is_bool(p_new -> 'active');
+    else
+      ok := v_admin;
+    end if;
+
+  elsif p_coll = 'codeRequests' then             -- written only by request_discount_code(); the club account may clear old ones
+    ok := p_op = 'delete' and v_admin;
   end if;
 
   if not coalesce(ok, false) then
@@ -533,6 +605,131 @@ language sql stable security definer set search_path = public as $$
         from docs d where d.collection = 'eventRegistrations' and d.data ->> 'eventId' = ev), '[]'::jsonb) as q
       from unnest(p_events) ev) e), '{}'::jsonb) end
 $$;
+
+-- ------------------------------------------------------------ WUSA payments (member side)
+-- A member enters the 6-digit WUSA confirmation number from their receipt. This does four things at once:
+--   1. their membership becomes "awaiting confirmation" (the event trial period), and the trial is marked used;
+--   2. the number is checked against every other number on file. If it was used before, BOTH accounts are
+--      flagged (the flag suspends the trial; an exec reviews it);
+--   3. verifyBy is set to three weeks from now. That is when an exec should check the payment with WUSA
+--      (and when the trial ends if nobody has confirmed it);
+--   4. the number is saved in the private payments record, which only execs can read.
+-- It has to be a function rather than a normal write because members cannot read other people's payments
+-- (so they could not check for duplicates) and must never be able to mark themselves paid.
+create or replace function public.app_iso(t timestamptz) returns text
+language sql immutable as $$ select to_char(t at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') $$;
+
+create or replace function public.submit_wusa_payment(p_term text, p_number text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  me   text := app_uid();
+  mid  text;
+  num  text := regexp_replace(coalesce(p_number, ''), '\s+', '', 'g');
+  m    jsonb;
+  dup  int;
+  t0   timestamptz := clock_timestamp();
+  stamp text := app_iso(t0);
+  by_ms bigint := (extract(epoch from t0) * 1000)::bigint;
+  due  text := app_iso(t0 + interval '21 days');
+  r    record;
+begin
+  if me is null or not app_is_member() then
+    raise exception 'permission-denied: members only' using errcode = '42501';
+  end if;
+  if num !~ '^\d{6}$' then
+    raise exception 'bad-request: Enter the 6-digit WUSA confirmation number.' using errcode = '22023';
+  end if;
+  mid := me || '_' || coalesce(p_term, '');
+
+  perform pg_advisory_xact_lock(hashtext('wusa:' || num));   -- two people entering the same number at once
+  select data into m from docs where collection = 'memberships' and id = mid for update;
+  if m is null then
+    raise exception 'not-found: register for this term first' using errcode = 'P0002';
+  end if;
+  if m -> 'paid' = 'true'::jsonb then
+    return jsonb_build_object('status', 'paid');
+  end if;
+  if coalesce(m ->> 'trialUsed', 'false') = 'true' then
+    raise exception 'already-submitted: A confirmation number has already been entered. Email the club if it needs fixing.' using errcode = '23505';
+  end if;
+
+  select count(*) into dup from docs where collection = 'payments' and data ->> 'wusaNumber' = num and id <> mid;
+
+  update docs set updated_at = now(), data = data || jsonb_build_object(
+      'payStatus', 'confirming', 'trialUsed', true, 'wusaSubmittedAt', stamp, 'verifyBy', due)
+        || case when dup > 0 then jsonb_build_object('flagged', true, 'flagReason', 'duplicate-wusa', 'flaggedAt', stamp)
+                else '{}'::jsonb end
+    where collection = 'memberships' and id = mid;
+
+  insert into docs (collection, id, data) values ('payments', mid, jsonb_build_object(
+      'uid', me, 'termId', p_term, 'method', 'wusa', 'wusaNumber', num, 'source', 'member', 'submittedAt', stamp,
+      'history', jsonb_build_array(jsonb_build_object('action', 'wusa number entered by member', 'wusaNumber', num, 'by', m ->> 'name', 'byEmail', app_email(), 'at', by_ms))))
+    on conflict (collection, id) do update set updated_at = now(), data =
+      jsonb_set(docs.data || jsonb_build_object('method', 'wusa', 'wusaNumber', num, 'source', 'member', 'submittedAt', stamp),
+                '{history}', coalesce(docs.data -> 'history', '[]'::jsonb)
+                  || jsonb_build_array(jsonb_build_object('action', 'wusa number entered by member', 'wusaNumber', num, 'by', m ->> 'name', 'byEmail', app_email(), 'at', by_ms)));
+
+  if dup > 0 then                                   -- flag the other account(s) too
+    for r in select id from docs where collection = 'payments' and data ->> 'wusaNumber' = num and id <> mid loop
+      update docs set updated_at = now(), data = data || jsonb_build_object('flagged', true, 'flagReason', 'duplicate-wusa', 'flaggedAt', stamp)
+        where collection = 'memberships' and id = r.id;
+      update docs set updated_at = now(), data = jsonb_set(data, '{history}', coalesce(data -> 'history', '[]'::jsonb)
+          || jsonb_build_array(jsonb_build_object('action', 'flagged: the same WUSA number was entered on another account', 'by', 'system', 'at', by_ms)))
+        where collection = 'payments' and id = r.id;
+    end loop;
+    update docs set updated_at = now(), data = jsonb_set(data, '{history}', coalesce(data -> 'history', '[]'::jsonb)
+        || jsonb_build_array(jsonb_build_object('action', 'flagged: this WUSA number is already on another account', 'by', 'system', 'at', by_ms)))
+      where collection = 'payments' and id = mid;
+  end if;
+
+  return jsonb_build_object('status', case when dup > 0 then 'flagged' else 'confirming' end, 'verifyBy', due);
+end $$;
+
+-- ------------------------------------------------------------ discount codes (member side)
+-- Codes are stored in the "discountCodes" collection, which only the club account can read.
+-- A paid member sees the list of available codes (names only), and gets the code itself by pressing
+-- Request. Every request is logged in "codeRequests" (who, which code, when, how many times).
+create or replace function public.list_discount_codes(p_term text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select case when app_uid() is null or not app_is_member() or not app_paid_membership(p_term) then '[]'::jsonb else
+    coalesce((select jsonb_agg(jsonb_build_object(
+        'key', c.id, 'label', c.data ->> 'label', 'note', coalesce(c.data ->> 'note', ''),
+        'requested', exists (select 1 from docs q where q.collection = 'codeRequests' and q.id = c.id || '_' || app_uid() || '_' || p_term))
+      order by c.data ->> 'label')
+      from docs c where c.collection = 'discountCodes' and c.data -> 'active' = 'true'::jsonb), '[]'::jsonb) end
+$$;
+
+create or replace function public.request_discount_code(p_key text, p_term text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  me text := app_uid();
+  c  jsonb;
+  rid text := coalesce(p_key, '') || '_' || coalesce(me, '') || '_' || coalesce(p_term, '');
+  u  jsonb;
+  stamp text := app_iso(clock_timestamp());
+begin
+  if me is null or not app_is_member() or not app_paid_membership(p_term) then
+    raise exception 'permission-denied: discount codes are for paid members' using errcode = '42501';
+  end if;
+  select data into c from docs where collection = 'discountCodes' and id = p_key and data -> 'active' = 'true'::jsonb;
+  if c is null then
+    raise exception 'not-found: that code is not available' using errcode = 'P0002';
+  end if;
+  select data into u from docs where collection = 'users' and id = me;
+  insert into docs (collection, id, data) values ('codeRequests', rid, jsonb_build_object(
+      'key', p_key, 'label', c ->> 'label', 'uid', me, 'email', app_email(), 'name', coalesce(u ->> 'name', app_email()),
+      'termId', p_term, 'firstAt', stamp, 'lastAt', stamp, 'count', 1))
+    on conflict (collection, id) do update set updated_at = now(), data =
+      docs.data || jsonb_build_object('lastAt', stamp, 'count', coalesce((docs.data ->> 'count')::int, 0) + 1);
+  return jsonb_build_object('label', c ->> 'label', 'code', c ->> 'code', 'note', coalesce(c ->> 'note', ''));
+end $$;
+
+revoke all on function public.submit_wusa_payment(text, text) from public, anon;
+grant execute on function public.submit_wusa_payment(text, text) to authenticated;
+revoke all on function public.list_discount_codes(text) from public, anon;
+grant execute on function public.list_discount_codes(text) to authenticated;
+revoke all on function public.request_discount_code(text, text) from public, anon;
+grant execute on function public.request_discount_code(text, text) to authenticated;
 
 revoke all on function public.apply_ops(jsonb) from public, anon;
 revoke all on function public.query_docs(text, jsonb, text) from public, anon;
