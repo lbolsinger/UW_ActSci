@@ -5,6 +5,7 @@ import { esc, toDate, fmtTime, fmtLong } from '../ui.js';
 import { termId, termLabel } from '../terms.js';
 import { isOpen, selfCheckIn, eventWindow } from '../checkin-core.js';
 import { parse } from '../../utils.js';
+import { canSignIn, payState } from '../payments.js';
 
 const card = (title, body, extra = '') => `<div class="portal-narrow"><div class="card ${extra}">${`<h2>${title}</h2>`}${body}<div class="btnrow" style="margin-top:14px"><a class="btn" href="#account">Go to my account</a></div></div></div>`;
 
@@ -22,13 +23,21 @@ export async function render(box, eventId, ctx) {
   const success = (at, how) => {
     box.innerHTML = `<div class="portal-narrow"><div class="card okcard"><div class="tick">✓</div><div class="big">You're signed in</div>
       <p style="margin:8px auto 4px"><b>${esc(ev.title)}</b><br>${esc(when)}${at ? ' · signed in at ' + esc(fmtTime(at)) : ''}</p>
-      <p style="margin:0 auto 12px"><b>${esc(session.displayName)}</b><br><span class="pl">${esc(termLabel(ctx.term))} · Paid</span></p>
+      <p style="margin:0 auto 12px"><b>${esc(session.displayName)}</b><br><span class="pl">${esc(termLabel(ctx.term))} · ${m?.paid ? 'Paid' : 'Trial period'}</span></p>
       <p class="hint" style="margin:0 auto">Show this screen to an exec if they ask.${how ? ' ' + esc(how) : ''}</p></div></div>`;
   };
 
   if (existing) return success(toDate(existing.at), 'You were already checked in.');
   if (!m) { box.innerHTML = card(`Renew for ${esc(termLabel(ctx.term))}`, `<p>Your membership isn't registered for this term yet. <a href="#account">Renew here</a>, or see an exec at the door.</p>`); return; }
-  if (!m.paid) { box.innerHTML = card('Payment required', `<p><b>You need to pay the club fee before you can sign in to events.</b> You're registered, but your payment hasn't been confirmed yet.</p><p>Pay in cash${ctx.data.site.office ? ` at the club office (${esc(ctx.data.site.office)})` : ''} or through WUSA, or see an exec at the door. They can take your payment and sign you in.</p>`, 'alert'); return; }
+  if (!canSignIn(m)) {
+    const office = ctx.data.site.office ? ` at the club office (${esc(ctx.data.site.office)})` : '';
+    const body = payState(m) === 'flagged'
+      ? `<p><b>Event sign-in is paused while an exec reviews your payment.</b></p><p>See an exec at the door, or email the club a screenshot or receipt of your payment.</p>`
+      : m.payStatus === 'confirming'
+        ? `<p><b>Your trial period has ended and your WUSA payment hasn't been confirmed yet.</b></p><p>Show an exec your WUSA receipt at the door, or email it to the club, and they'll confirm it.</p>`
+        : `<p><b>You need to pay the club fee before you can sign in to events.</b> You're registered, but your payment hasn't been confirmed yet.</p><p>Pay in cash${office}, or through WUSA and enter your 6-digit confirmation number under <a href="#account/membership">My membership</a> to start a trial period. You can also see an exec at the door.</p>`;
+    box.innerHTML = card(payState(m) === 'flagged' ? 'Payment under review' : 'Payment required', body, 'alert'); return;
+  }
   if (!isOpen(ev, ctx.portal.checkInOpensMinutesBefore)) {
     const w = eventWindow(ev, ctx.portal.checkInOpensMinutesBefore);
     box.innerHTML = card('Check-in isn\'t open', `<p><b>${esc(ev.title)}</b> check-in opens at ${esc(fmtTime(w.opens))} and closes when the event ends at ${esc(fmtTime(w.end))}.</p>`); return;
