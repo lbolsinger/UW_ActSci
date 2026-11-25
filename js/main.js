@@ -9,9 +9,11 @@ import * as resources from './pages/resources.js';
 import * as programs from './pages/programs.js';
 import * as execs from './pages/execs.js';
 import * as account from './pages/account.js';
+import * as guide from './pages/guide.js';
+import * as checkin from './pages/checkin.js';   // the door QR code opens #checkin/<event-id>
 
 // To add a page: create js/pages/<name>.js exporting render(), add it here, and add a tab in index.html.
-const PAGES = { home, events, resources, programs, execs, account }; 
+const PAGES = { home, events, resources, programs, guide, execs, account, checkin };
 let current = 'home';
 let pendingOpen = null;   // day to open once the Events page has rendered
 
