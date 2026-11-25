@@ -11,14 +11,14 @@ const get = async name => {
 };
 
 export async function loadData() {
-  const [site, keyDates, events, officeHours, execTeams, resources, programs, portal] = await Promise.all([
+  const [site, keyDates, events, officeHours, execTeams, resources, programs, portal, guide] = await Promise.all([
     get('site'), get('key-dates'), get('events'), get('office-hours'),
-    get('execs'), get('resources'), get('programs'), get('portal')
+    get('execs'), get('resources'), get('programs'), get('portal'), get('guide')
   ]);
   // Check-in, attendance and event sign-up all identify an event by its id. Use the one in events.json if there
   // is one, otherwise make a stable one from the title and date.
   events.forEach(e => { e.id ||= defaultEventId(e); });
-  Object.assign(store, { site, keyDates, events, officeHours, execTeams, resources, programs, portal });
+  Object.assign(store, { site, keyDates, events, officeHours, execTeams, resources, programs, portal, guide });
 
   // office-hours.json only stores exec ids; join them to the exec details
   const execById = {};
