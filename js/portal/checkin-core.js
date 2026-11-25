@@ -20,9 +20,11 @@ export async function selfCheckIn(event, term, method = 'self') {
   const id = `${event.id}_${uid}`;
   const existing = await read('attendance', id);
   if (existing) return { status: 'already', at: existing.at };
+  const m = await read('memberships', `${uid}_${tid}`);
   await F.setDoc(ref('attendance', id), {
     eventId: event.id, eventTitle: event.title, uid, email: session.email,
-    name: session.profile?.name || session.email, termId: tid, method, by: '', at: stamp()
+    name: session.profile?.name || session.email, termId: tid, method, by: '', at: stamp(),
+    trial: !!m && !m.paid     // signed in during the WUSA trial, before an exec confirmed the payment
   });
   return { status: 'ok' };
 }
