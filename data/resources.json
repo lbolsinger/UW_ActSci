@@ -6,9 +6,9 @@
      {"label": "Casualty Actuarial Society", "url": "https://www.casact.org"},
      {"label": "Canadian Institute of Actuaries", "url": "https://www.cia-ica.ca"}]},
   {"title": "Exam study materials", "image": null,
-   "text": "Active club members get exclusive discounts for the Fall 2026 term: Coaching Actuaries (25% off Practice, 50% off Learn Lite + Practice, 70% off Learn Complete + Practice + VEE), ACTEX (20% off Study Guide + Practice) and TIA (100% off Study Guides + Practice for Exam P and Exam FM). To get the Coaching Actuaries and ACTEX codes, email asclub.uwaterloo@gmail.com with your name, student number and Waterloo email. The discount can't be combined with the UW code, you must upload proof of enrollment at checkout, and codes can't be shared.",
+   "text": "Active club members get exclusive discounts for the Fall 2026 term: Coaching Actuaries (25% off Practice, 50% off Learn Lite + Practice, 70% off Learn Complete + Practice + VEE), ACTEX (20% off Study Guide + Practice) and TIA (100% off Study Guides + Practice for Exam P and Exam FM). To get the Coaching Actuaries and ACTEX codes, sign in, confirm your membership payment and press Request under Programs > Discount codes. The discount can't be combined with the UW code, you must upload proof of enrollment at checkout, and codes can't be shared.",
    "links": [
-     {"label": "Request discount codes", "url": "mailto:asclub.uwaterloo@gmail.com"},
+     {"label": "Request discount codes (members)", "url": "#account/programs"},
      {"label": "TIA: Exam P and FM courses, practice and sample exams", "url": "#"}]},
   {"title": "Exam P and FM practice", "image": null,
    "text": "Free practice problems with solutions for the first two exams, plus a sample online exam from the SOA.",
