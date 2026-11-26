@@ -1,6 +1,6 @@
 {
   "title": "Member guide",
-  "intro": "Everything about having an account with the club: how to sign up, what it gets you, how paying works and what the trial period is. Membership costs $5 per term and is open to MathSoc members only. Anyone can read this page, but you need an account to take part.",
+  "intro": "Everything about having an account with the club: how to sign up, what it gets you, how paying works and how we verify WUSA payments. Membership costs $5 per term and is open to MathSoc members only. Anyone can read this page, but you need an account to take part.",
   "steps": [
     {
       "title": "Sign in",
@@ -23,7 +23,7 @@
     "head": [
       "",
       "Registered, not paid",
-      "WUSA trial (number entered)",
+      "WUSA, awaiting verification",
       "Paid"
     ],
     "rows": [
@@ -62,21 +62,20 @@
       ],
       "bullets": [
         "Cash: pay at the club office or to an exec at an event. Your account shows Awaiting payment until they mark you as paid, which usually takes a moment.",
-        "WUSA: pay through WUSA, then enter the 6-digit confirmation number from your receipt under My membership. Your account shows Awaiting confirmation and your trial period starts right away."
+        "WUSA: pay through WUSA, then enter the 6-digit confirmation number from your receipt under My membership. Your account shows Awaiting confirmation, and you can join events right away while we verify the payment."
       ]
     },
     {
-      "id": "trial",
-      "title": "The WUSA trial period",
+      "id": "verification",
+      "title": "How we verify WUSA payments",
       "paragraphs": [
-        "WUSA payments can take a couple weeks to show up on the club's side, so you don't have to wait to take part. While your payment is awaiting confirmation you can sign in to events.",
-        "The trial doesn't unlock programs or discount codes. Those open up as soon as an exec confirms your payment."
+        "When you enter your WUSA confirmation number, you're treated as paid for events straight away. We can't check numbers against WUSA's records in real time, so programs (mentorship, resume critique, mock interviews) and study material discount codes stay locked until your payment has been verified.",
+        "Verification takes up to two weeks. After that, your account is marked paid, or marked as unverified if we couldn't match your payment."
       ],
       "bullets": [
-        "The trial lasts two weeks from when you enter your number, and it can only be used once per term.",
-        "Every two weeks the club gets a list of payments from WUSA. Execs check your number against it. If it's there, you're marked paid and everything unlocks.",
-        "If we can't find your payment in WUSA's records, or the same confirmation number is on another account, your account is flagged and sign-in is paused until an exec sorts it out. Email the club or come to office hours to verify in person. This is usually a typo, so double-check the number you enter.",
-        "Want it confirmed sooner? Show an exec your WUSA receipt in person, or email the club a screenshot. They can mark you as paid straight away."
+        "Every two weeks the club receives a list of payments from WUSA. Execs check your confirmation number against it. If it's there, you're marked paid and programs and discount codes unlock.",
+        "Want it verified sooner? Show your receipt at office hours or email a screenshot to the club, and an exec can mark you as paid straight away.",
+        "If we can't verify your payment, or the same confirmation number is on another account, your account is flagged and event sign-in is paused until an exec sorts it out. Email the club or come to office hours to show your receipt in person. This is usually a typo, so double-check the number you enter."
       ]
     },
     {
@@ -117,7 +116,7 @@
     },
     {
       "q": "I entered the wrong number.",
-      "a": "Email the club with your receipt and an exec will fix it. Your trial can only be started once per term, so please check the number before you submit it."
+      "a": "Email the club with your receipt, or show it at office hours, and an exec will fix it. Please check the number before you submit it."
     },
     {
       "q": "My account says Under review.",
@@ -129,7 +128,7 @@
     },
     {
       "q": "Who can join?",
-      "a": "Membership is $5 per term and is open to MathSoc members only."
+      "a": "Any MathSoc member is eligible for ActSci Club. Unless opted out, all students in the Math Faculty are considered MathSoc members."
     }
   ]
 }
