@@ -65,9 +65,9 @@ export function render() {
       <section class="card" aria-labelledby="howH">
         <h2 id="howH">How membership works</h2>
         <ol class="howstrip">
-          <li><b>1. Sign in and register</b>Use your @uwaterloo.ca email on the Account tab. You must be a MathSoc member.</li>
-          <li><b>2. Pay $5 per term</b>Pay in cash to an exec, or through WUSA and enter your 6-digit confirmation number.</li>
-          <li><b>3. Get started</b>WUSA payers get a two-week trial for events. Programs and discount codes unlock once an exec confirms payment.</li>
+          <li><b>1. Sign in and register</b>Use your @uwaterloo.ca email on the Account tab. You must be a paid MathSoc member. <a href="https://mathsoc.uwaterloo.ca" target="_blank" rel="noopener noreferrer">Visit the MathSoc website</a> for more information.</li>
+          <li><b>2. Pay $5 per term</b>Pay in cash to an exec, or <a href="https://wusa.ca/product/uw-actsci-club/" target="_blank" rel="noopener noreferrer">through WUSA</a> and enter your 6-digit confirmation number.</li>
+          <li><b>3. Get started</b>Once paid, join events right away! For WUSA payments, programs and discount codes are locked until we've verified your payment with WUSA, which takes up to two weeks. Want it sooner? Show your receipt at office hours or email it to us.</li>
         </ol>
         <a class="btn" href="#guide">Read the member guide</a>
       </section>
