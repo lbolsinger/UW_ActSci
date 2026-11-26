@@ -6,6 +6,8 @@ import { termId, termLabel, labelFromId, termOrder } from '../terms.js';
 import { isOpen, selfCheckIn } from '../checkin-core.js';
 import { regConfig, queueState, eventKey, eventStart, eventEnd, eventQueues, payWarning } from '../eventreg.js';
 import { signOut } from '../auth.js';
+import { nameFields, programField, experienceFields, contactFields, bindExperience, readProfile, validateExtras, EXTRA_KEYS } from '../profile-fields.js';
+import { payState, payBadge, canSignIn, trialActive, submitWusa } from '../payments.js';
 
 export async function render(root, ctx) {
   const v = fresh(root);
@@ -181,12 +183,12 @@ function bindCredentials(root, ctx) {
 
 function detailsFields(ctx, p = {}) {
   return `
-    <div class="field"><label for="f-name">Your name <span class="req">*</span></label>
-      <input id="f-name" name="name" type="text" value="${esc(p.name || '')}" maxlength="100" autocomplete="name"></div>
+    ${nameFields(p)}
     <div class="two-f">
       <div class="field"><label for="f-year">Year of study <span class="req">*</span></label>${yearSelect(ctx.portal.years, p.year || ctx.portal.years[0])}</div>
       <div class="field"><span class="lbl">Work term status <span class="req">*</span></span>${seg('workTerm', [['study', 'On study'], ['coop', 'On co-op']], p.workTerm || 'study')}</div>
     </div>
+    ${programField(ctx, p)}
     <div class="field"><label for="f-diet">Dietary restrictions</label>
       <textarea id="f-diet" name="dietary" maxlength="300">${esc(p.dietary || '')}</textarea><small>Used for event food orders.</small></div>`;
 }
@@ -194,19 +196,20 @@ function detailsFields(ctx, p = {}) {
 function publicFields(ctx, p = {}) {
   return `
     <div class="notice">Everything in this section appears in the member directory and can be seen by other members who are signed in. It's optional, and you can leave any of it blank. Don't add anything you wouldn't want other members to read.</div>
-    <div class="field"><label for="f-li">LinkedIn</label><input id="f-li" name="linkedin" type="url" placeholder="https://linkedin.com/in/…" value="${esc(p.linkedin || '')}" maxlength="300"></div>
-    <div class="field"><label for="f-coop">Previous co-op experience</label><textarea id="f-coop" name="coopExperience" maxlength="1000">${esc(p.coopExperience || '')}</textarea></div>
+    ${experienceFields(ctx, p)}
     ${credentialsField(ctx, p)}
+    <div class="field-h">Contact</div>
+    ${contactFields(p)}
     <div class="prefrow rule"><div><b>Show me in the member directory</b><div class="hint">Shows your name, year and the details above to signed-in members. Turn off to hide yourself completely.</div></div>${toggle('directoryVisible', p.directoryVisible !== false)}</div>`;
 }
 
 const clean = (d, keys) => Object.fromEntries(keys.map(k => [k, d[k]]));
 
-function validate(d) {
-  if (!d.name) return 'Please enter your name.';
+function validate(d, x) {
+  const bad = validateExtras(x, d);
+  if (bad) return bad;
   if (!d.year) return 'Please choose your year of study.';
   if (!d.workTerm) return 'Please choose your work term status.';
-  if (d.linkedin && !/^https?:\/\//i.test(d.linkedin)) return 'The LinkedIn link should start with https://';
   return '';
 }
 
@@ -222,24 +225,25 @@ function registration(v, ctx) {
     ${publicFields(ctx)}
     <div class="prefrow rule"><div><b>Send me club emails</b><div class="hint">Event announcements and sponsor opportunities. You can turn this off any time.</div></div>${toggle('emailOptIn', true)}</div>
     <div class="share"><b>Who sees what?</b> Execs can see everything you enter here. Other members see only what's in the "Tell us more" section, and only if you leave the directory switch on. Your payment details are only ever seen by execs.</div>
-    <div class="share"><b>The club fee:</b> after you register, pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here.</div>
+    <div class="share"><b>The club fee is $5 per term, and membership is open to MathSoc members only.</b> After you register, pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here.</div>
     <button class="btn primary" type="submit">Register for ${esc(termLabel(ctx.term))}</button>
   </form></div>`;
-  bindCredentials(v, ctx);
+  bindCredentials(v, ctx); bindExperience(v);
   const form = v.querySelector('#reg');
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const d = collect(form);
     d.credentials = [...new Set(d.credentials || [])];
     d.exams = [...new Set(d.exams || [])];
-    const problem = validate(d);
+    Object.assign(d, readProfile(form, d));
+    const problem = validate(d, d);
     if (problem) return toast(problem, 'err');
     const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
     try {
       const uid = session.user.uid, tid = termId(ctx.term);
       const b = batch();
       b.set(ref('users', uid), {
-        uid, email: session.email, ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams']),
+        uid, email: session.email, ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams', ...EXTRA_KEYS]),
         directoryVisible: !!d.directoryVisible, emailOptIn: !!d.emailOptIn, lastTermId: tid, createdAt: stamp()
       });
       b.set(ref('memberships', `${uid}_${tid}`), {
@@ -256,7 +260,10 @@ function registration(v, ctx) {
 
 const directoryDoc = (uid, d, tid, isMentor) => ({
   uid, name: d.name, year: d.year, linkedin: d.linkedin || '', coopExperience: d.coopExperience || '',
-  credentials: [...new Set(d.credentials || [])], exams: [...new Set(d.exams || [])], isMentor: !!isMentor, termId: tid, updatedAt: stamp()
+  credentials: [...new Set(d.credentials || [])], exams: [...new Set(d.exams || [])],
+  interests: d.interests || [], skills: d.skills || [], otherInterest: d.otherInterest || '',
+  coopCount: d.coopCount || 0, coops: (d.coops || []).filter(c => c.company || c.role), contactEmail: d.contactEmail || '', website: d.website || '',
+  isMentor: !!isMentor, termId: tid, updatedAt: stamp()
 });
 
 /* --------------------------------------------------------------- dashboard */
@@ -281,7 +288,7 @@ async function dashboard(v, ctx) {
   const prompts = openEvents.map(e => {
     const start = e.allDay ? 'today' : `at ${fmtTime(new Date(`${e.start}T${e.startTime}`))}`;
     const place = `${esc(start)}${e.location ? ', ' + esc(e.location) : ''}.`;
-    return current.paid
+    return canSignIn(current)
       ? `<div class="prompt"><div><b>${esc(e.title)} is on now</b><span>${place} Sign in and you'll be marked present.</span></div><a class="btn primary" href="#" data-act="checkin" data-event="${esc(e.id)}">Sign in to this event</a></div>`
       : `<div class="prompt"><div><b>${esc(e.title)} is on now</b><span>${place} <b>Payment required:</b> you need to pay the club fee before you can sign in.</span></div><a class="btn primary" href="#" data-act="paywarn">Sign in to this event</a></div>`;
   }).join('');
@@ -304,15 +311,48 @@ async function dashboard(v, ctx) {
     }).join('');
   } catch (err) { console.warn(err); }
 
-  const office = ctx.data.site.office;
-  const status = !current
-    ? `<div class="alert"><b>You haven't registered for ${esc(termLabel(ctx.term))} yet.</b>Renew your membership to take part in this term's events and programs.</div>`
-    : current.paid ? '' : `<div class="alert"><b>You're registered for ${esc(termLabel(ctx.term))}.</b>Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment here once they receive it. Programs (mentorship, resume critique, mock interviews) unlock when they do.</div>`;
+  const office = ctx.data.site.office, clubEmail = ctx.data.site.email;
+  const proofLink = `<a href="mailto:${esc(clubEmail)}?subject=${encodeURIComponent('Proof of payment: ' + p.name)}">email the club your proof of payment</a>`;
+  const state = payState(current);
+  const dateOf = d => esc(fmtDay(toDate(d)));
+  const wusaForm = `<form class="wusa-form" id="wusa-form" novalidate>
+      <label for="f-wusa">WUSA confirmation number</label>
+      <div class="inline-f"><input id="f-wusa" name="wusa" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="6 digits" pattern="[0-9]*">
+      <button class="btn primary" type="submit">Submit</button></div>
+      <small>Paid through WUSA? Enter the 6-digit number from your receipt. You'll get a trial period for events right away while we confirm it with WUSA. A trial can only be used once per term, and each number can only be used once.</small></form>`;
+  let status = '';
+  if (!current) {
+    status = `<div class="alert"><b>You haven't registered for ${esc(termLabel(ctx.term))} yet.</b>Renew your membership to take part in this term's events and programs.</div>`;
+  } else if (state === 'awaiting') {
+    status = `<div class="alert"><b>Awaiting payment for ${esc(termLabel(ctx.term))}.</b>
+      <p style="margin:6px 0 10px"><b>Paying in cash?</b> Pay at the club office${office ? ` (${esc(office)})` : ''} or to an exec at an event. They'll mark you as paid here.</p>
+      <p style="margin:0 0 10px"><b>Paying through WUSA?</b> Enter your confirmation number below.</p>
+      ${current.trialUsed ? `<p class="hint" style="margin:0">Your trial for this term has already been used, so an exec has to confirm your payment before you can sign in.</p>` : wusaForm}</div>`;
+  } else if (state === 'confirming' && trialActive(current)) {
+    status = `<div class="alert ok"><b>Awaiting confirmation: trial period until ${dateOf(current.verifyBy)}.</b>
+      We'll confirm your WUSA payment by then. Until it's confirmed you can sign in to events, but programs (mentorship, resume critique, mock interviews) and discount codes stay locked. Want it confirmed sooner? You can ${proofLink}.</div>`;
+  } else if (state === 'confirming') {
+    status = `<div class="alert"><b>Your trial period ended on ${dateOf(current.verifyBy)}.</b>
+      We still need to confirm your WUSA payment. Please ${proofLink} or show an exec your receipt, and you'll be set.</div>`;
+  } else if (state === 'flagged') {
+    status = current.flagReason === 'wusa-not-found'
+      ? `<div class="alert err"><b>Unverified: we couldn't confirm your proof of payment.</b>
+         We couldn't find a payment with the confirmation number you entered in WUSA's records. Please ${proofLink}, or come to office hours${office ? ` (${esc(office)})` : ''} to verify in person. Event sign-in is paused until it's sorted out.</div>`
+      : current.flagReason === 'duplicate-wusa'
+      ? `<div class="alert err"><b>Your payment is under review.</b>
+         Our records show another member has entered the same 6-digit WUSA confirmation number. Please ${proofLink}, or come to office hours${office ? ` (${esc(office)})` : ''} so an exec can confirm it. Event sign-in is paused until it's sorted out.</div>`
+      : `<div class="alert err"><b>Your payment is flagged for review.</b>
+         Please ${proofLink}, or come to office hours${office ? ` (${esc(office)})` : ''} to verify in person. Event sign-in is paused until it's sorted out.</div>`;
+  } else if (current.flagged) {
+    status = `<div class="alert"><b>Please confirm your payment with an exec.</b>
+      ${current.flagReason === 'duplicate-wusa' ? 'Our records show another member has entered the same 6-digit WUSA confirmation number.' : 'Something about your payment record needs a second look.'}
+      Your access isn't affected, but please ${proofLink} or see an exec at office hours${office ? ` (${esc(office)})` : ''}.</div>`;
+  }
 
   const hist = [
     !current ? `<li><div><b>${esc(termLabel(ctx.term))}</b><div class="hint">Not registered</div></div><a class="btn primary sm" href="#" data-act="renew">Renew for ${esc(termLabel(ctx.term))}</a></li>` : '',
     ...mems.map(m => `<li><div><b>${esc(labelFromId(m.termId))}</b>${m.termId === tid ? `<div class="hint">Registered ${esc(fmtDay(toDate(m.registeredAt)))}</div>` : ''}</div>${
-      m.termId === tid ? (m.paid ? badge('Paid', 'b-paid') : badge('Awaiting payment', 'b-wait')) : badge('Expired', 'b-exp')}</li>`)
+      m.termId === tid ? payBadge(m) : badge('Expired', 'b-exp')}</li>`)
   ].join('');
 
   v.innerHTML = `
@@ -336,7 +376,7 @@ async function dashboard(v, ctx) {
     </form></div>
   </div>`;
 
-  bindCredentials(v, ctx);
+  bindCredentials(v, ctx); bindExperience(v);
 
   const form = v.querySelector('#profile-form');
   form.addEventListener('submit', async e => {
@@ -344,14 +384,25 @@ async function dashboard(v, ctx) {
     const d = collect(form);
     d.credentials = [...new Set(d.credentials || [])];
     d.exams = [...new Set(d.exams || [])];
-    const problem = validate(d); if (problem) return toast(problem, 'err');
+    Object.assign(d, readProfile(form, d));
+    const problem = validate(d, d); if (problem) return toast(problem, 'err');
     const b = batch();
-    b.update(ref('users', uid), { ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams']), directoryVisible: !!d.directoryVisible });
+    b.update(ref('users', uid), { ...clean(d, ['name', 'year', 'workTerm', 'dietary', 'linkedin', 'coopExperience', 'credentials', 'exams', ...EXTRA_KEYS]), directoryVisible: !!d.directoryVisible });
     if (current) b.update(ref('memberships', `${uid}_${tid}`), clean(d, ['name', 'year', 'workTerm', 'dietary']));
     if (d.directoryVisible && current) b.set(ref('directory', uid), directoryDoc(uid, d, tid, mentor?.role === 'mentor'));
     if (!d.directoryVisible) b.delete(ref('directory', uid));
     await b.commit(); await reload();
     toast('Saved.'); ctx.rerender();
+  });
+
+  v.querySelector('#wusa-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button'); btn.disabled = true;
+    try {
+      const r = await submitWusa(tid, e.target.wusa.value);
+      toast(r.status === 'paid' ? 'You\'re already paid.' : r.status === 'flagged' ? 'Thanks. An exec will review this number.' : 'Thanks! Your trial period has started.');
+      ctx.rerender();
+    } catch (err) { btn.disabled = false; toast(err.message || 'Could not submit that number.', 'err'); }
   });
 
   acts(v, {
@@ -377,7 +428,7 @@ async function dashboard(v, ctx) {
       await selfCheckIn(e, ctx.term, 'self');
       toast('You\'re signed in!'); ctx.rerender();
     },
-    paywarn() { payWarning(office); },
+    paywarn() { payWarning(office, current); },
     async signout() { await signOut(); location.reload(); },
     async delreq() {
       if (!confirm('Ask the club to delete your account and personal details? An admin will process this.')) return;

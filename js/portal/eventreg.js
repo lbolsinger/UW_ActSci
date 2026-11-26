@@ -50,9 +50,19 @@ export function popup(title, bodyHtml) {
   return close;
 }
 
-/** The "you need to pay" message, used wherever an unpaid member tries to check in. */
-export function payWarning(office) {
+/** The "you need to pay" message, used wherever a member who can't sign in yet tries to check in. */
+export function payWarning(office, m) {
+  if (m?.flagged) {
+    return popup('Your payment is under review',
+      `<p style="margin-top:0"><b>Event sign-in is paused while an exec reviews your payment.</b></p>
+       <p>Please see an exec at the door, or email the club a screenshot or receipt of your payment so they can confirm it.</p>`);
+  }
+  if (m?.payStatus === 'confirming') {
+    return popup('Your trial period has ended',
+      `<p style="margin-top:0"><b>An exec still needs to confirm your WUSA payment.</b></p>
+       <p>Show an exec your WUSA receipt at the door, or email it to the club, and they'll confirm it so you can keep signing in.</p>`);
+  }
   return popup('Payment required',
     `<p style="margin-top:0"><b>You need to pay the club fee before you can sign in to events.</b></p>
-     <p>Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA. An exec will confirm your payment, and after that the sign-in button works. You can also see an exec at the door.</p>`);
+     <p>Pay in cash${office ? ` at the club office (${esc(office)})` : ''}, or through WUSA. If you pay through WUSA, enter the 6-digit confirmation number under <a href="#account/membership">My membership</a> and you can sign in to events straight away while we confirm it. You can also see an exec at the door.</p>`);
 }

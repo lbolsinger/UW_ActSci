@@ -2,6 +2,7 @@
 import { list, col, where } from '../db.js';
 import { esc, fresh, bindWidgets, seg, initials } from '../ui.js';
 import { termId } from '../terms.js';
+import { coopLine, stripUrl } from '../profile-fields.js';
 
 const SECONDARY_DESIGNATIONS = new Set(['CERA', 'MAAA']);
 
@@ -29,7 +30,7 @@ export async function render(root, ctx) {
   v.innerHTML = `
     <div class="bar"><h2>Member directory</h2></div>
     <p class="hint" style="margin:-8px 0 14px">Only signed-in club members can see this page. It shows each person's name, year, and anything they chose to share.</p>
-    <div class="tools"><input type="search" id="dq" placeholder="Search by name" aria-label="Search by name">
+    <div class="tools"><input type="search" id="dq" placeholder="Search by name, skill or interest" aria-label="Search by name, skill or interest">
       ${seg('year', [['', 'All years'], ...ctx.portal.years.slice(0, 4).map(y => [y, y.replace(' year', '')])], '')}
       ${seg('who', [['', 'Everyone'], ['mentor', 'Mentors']], '')}</div>
     <div class="dgrid" id="dgrid"></div><p class="hint" id="dcount"></p>`;
@@ -39,7 +40,7 @@ export async function render(root, ctx) {
     const q = v.querySelector('#dq').value.trim().toLowerCase();
     const year = v.querySelector('[data-name=year] .on')?.dataset.val || '';
     const mentorsOnly = v.querySelector('[data-name=who] .on')?.dataset.val === 'mentor';
-    const rows = all.filter(m => (!q || m.name.toLowerCase().includes(q)) && (!year || m.year === year) && (!mentorsOnly || m.isMentor));
+    const rows = all.filter(m => (!q || [m.name, ...(m.skills || []), ...(m.interests || []), m.otherInterest || ''].some(t => String(t).toLowerCase().includes(q))) && (!year || m.year === year) && (!mentorsOnly || m.isMentor));
 
     grid.innerHTML = rows.map(m => {
       const creds = m.credentials || [];
@@ -59,8 +60,13 @@ export async function render(root, ctx) {
 
       return `<div class="pcard"><div class="hd"><span class="av">${esc(initials(m.name))}</span>
         <div><span class="nm">${esc(m.name)} ${m.isMentor ? '<span class="badge b-ok">Mentor</span>' : ''}</span><span class="yr">${esc(m.year)}</span></div></div>
-        ${m.coopExperience ? `<p><b>Co-op:</b> ${esc(m.coopExperience)}</p>` : ''}
-        ${/^https?:\/\//i.test(m.linkedin || '') ? `<p><a href="${esc(m.linkedin)}" target="_blank" rel="noopener noreferrer">${esc(m.linkedin.replace(/^https?:\/\/(www\.)?/, ''))}</a></p>` : ''}
+        ${(m.interests?.length || m.otherInterest) ? `<div class="tags">${[...(m.interests || []), ...(m.otherInterest ? [m.otherInterest] : [])].map(i => `<span class="chip2 static">${esc(i)}</span>`).join('')}</div>` : ''}
+        ${m.coops?.length ? `<p style="margin-bottom:0"><b>Actuarial co-ops (${m.coops.length}):</b></p><ul class="coops">${m.coops.map(c => `<li>${esc(coopLine(c))}</li>`).join('')}</ul>` : ''}
+        ${m.coopExperience ? `<p><b>${m.coops?.length ? 'Other experience' : 'Experience'}:</b> ${esc(m.coopExperience)}</p>` : ''}
+        ${m.skills?.length ? `<p style="margin-bottom:0"><b>Skills:</b> ${m.skills.map(esc).join(', ')}</p>` : ''}
+        ${/^https?:\/\//i.test(m.linkedin || '') ? `<p><a href="${esc(m.linkedin)}" target="_blank" rel="noopener noreferrer">${esc(stripUrl(m.linkedin))}</a></p>` : ''}
+        ${/^https?:\/\//i.test(m.website || '') ? `<p><a href="${esc(m.website)}" target="_blank" rel="noopener noreferrer">${esc(stripUrl(m.website))}</a></p>` : ''}
+        ${m.contactEmail ? `<p><a href="mailto:${esc(m.contactEmail)}">${esc(m.contactEmail)}</a></p>` : ''}
         ${hasChips ? `<div class="chips">${credChipsHTML}${examChipsHTML}</div>` : ''}</div>`;
     }).join('');
 

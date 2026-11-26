@@ -3,12 +3,16 @@ import { session } from '../session.js';
 import { F, col, ref, list, read, stamp, where, batch } from '../db.js';
 import { esc, fresh, acts, bindWidgets, collect, seg, chips, badge, toast, initials } from '../ui.js';
 import { termId, termLabel } from '../terms.js';
+import { coopLine } from '../profile-fields.js';
 
 export async function render(el, ctx) {
   const v = fresh(el); bindWidgets(v);
   const uid = session.user.uid, tid = termId(ctx.term), max = ctx.portal.mentorMaxMentees;
   const mine = await read('mentorProfiles', `${uid}_${tid}`);
   const p = session.profile;
+  // Prefill from the profile: interests as chosen there, and co-ops written out as lines of text.
+  const profInterests = [...(p.interests || []), ...(p.otherInterest ? [p.otherInterest] : [])].filter(i => ctx.portal.interests.includes(i));
+  const profCoop = [...(p.coops || []).filter(c => c.company || c.role).map(coopLine), p.coopExperience || ''].filter(Boolean).join('\n');
 
   const fields = (m = {}, locked = false) => `
     <div class="share"><b>Who sees this?</b> Only execs and the people you're matched with. It is separate from your public directory profile.</div>
@@ -16,8 +20,8 @@ export async function render(el, ctx) {
     <div class="two-f"><div class="field"><label>Year of study <span class="req">*</span></label>
       <select name="year">${ctx.portal.years.map(y => `<option ${y === (m.year || p.year) ? 'selected' : ''}>${esc(y)}</option>`).join('')}</select></div>
       <div class="field"><span class="lbl">Work term status <span class="req">*</span></span>${seg('workTerm', [['study', 'On study'], ['coop', 'On co-op']], m.workTerm || p.workTerm)}</div></div>
-    <div class="field"><span class="lbl">Areas of interest <span class="req">*</span></span>${chips('interests', ctx.portal.mentorInterests, m.interests || [])}</div>
-    <div class="field"><label>Co-op experience <span class="req">*</span></label><textarea name="coop" maxlength="1000">${esc(m.coop ?? p.coopExperience ?? '')}</textarea><small>Filled in from your profile. Editing it here changes it for this program only.</small></div>
+    <div class="field"><span class="lbl">Areas of interest <span class="req">*</span></span>${chips('interests', ctx.portal.mentorInterests || ctx.portal.interests, m.interests ?? profInterests)}</div>
+    <div class="field"><label>Co-op experience <span class="req">*</span></label><textarea name="coop" maxlength="1000">${esc(m.coop ?? profCoop)}</textarea><small>Filled in from your profile. Editing it here changes it for this program only.</small></div>
     <div class="field"><label><span class="goal-label">${m.role === 'mentor' ? 'What can you offer a mentee?' : 'What do you want from a mentor?'}</span> <span class="req">*</span></label><textarea name="goals" maxlength="1000">${esc(m.goals || '')}</textarea></div>
     <div class="field"><label>LinkedIn <span class="req">*</span></label><input name="linkedin" type="url" maxlength="300" value="${esc(m.linkedin ?? p.linkedin ?? '')}"></div>
     <div class="two-f"><div class="field"><span class="lbl">Prefer to meet</span>${seg('meet', [['In person', 'In person'], ['Virtual', 'Virtual'], ['Either', 'Either']], m.meet || 'Either')}</div>
