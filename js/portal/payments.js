@@ -15,7 +15,7 @@ import { supabase } from './supabase.js';
 import { session } from './session.js';
 import { badge, toDate } from './ui.js';
 
-export const TRIAL_DAYS = 21;
+export const TRIAL_DAYS = 14;
 
 export const FLAG_REASONS = {
   'duplicate-wusa': 'The same WUSA confirmation number is on another account',
