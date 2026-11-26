@@ -34,7 +34,7 @@ export async function render(root, ctx) {
 
   function drawCounts() {
     const paidTonight = present.filter(a => a.paidTonight).length, trial = present.filter(a => a.trial && !a.paidTonight).length;
-    v.querySelector('#counts').innerHTML = `<div class="stat"><b>${present.length}</b><span>Present</span></div><div class="stat"><b>${paidTonight}</b><span>Paid tonight</span></div><div class="stat"><b>${trial}</b><span>Trial (unconfirmed)</span></div>`;
+    v.querySelector('#counts').innerHTML = `<div class="stat"><b>${present.length}</b><span>Present</span></div><div class="stat"><b>${paidTonight}</b><span>Paid tonight</span></div><div class="stat"><b>${trial}</b><span>Awaiting verification</span></div>`;
     v.querySelector('#ptitle').textContent = `Present so far (${present.length})`;
     v.querySelector('#plist').innerHTML = present.length
       ? [...present].sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0)).map(a => `<li><div><b>${esc(a.name)}</b>${a.trial && !a.paidTonight ? ' ' + badge('Trial', 'b-trial') : ''}</div><small>${stamps(a)}</small></li>`).join('')
