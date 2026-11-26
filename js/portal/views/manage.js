@@ -117,7 +117,7 @@ export async function render(root, ctx) {
 
   /* CSV export of whoever the current filter/search shows. WUSA numbers and dietary notes are left out on purpose. */
   const csvCell = x => { let t = String(x ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return /[",\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
-  const statusText = m => ({ paid: 'Paid', awaiting: 'Awaiting payment', confirming: verifyDue(m) ? 'Awaiting confirmation (verify with WUSA)' : 'Awaiting confirmation (trial)', flagged: 'Flagged' }[payState(m)]) + (m.paid && m.flagged ? ' (flagged)' : '');
+  const statusText = m => ({ paid: 'Paid', awaiting: 'Awaiting payment', confirming: verifyDue(m) ? 'Awaiting confirmation (verify with WUSA)' : 'Awaiting confirmation (within 2 weeks)', flagged: 'Flagged' }[payState(m)]) + (m.paid && m.flagged ? ' (flagged)' : '');
   v.querySelector('#export').addEventListener('click', async e => {
     const btn = e.currentTarget; btn.disabled = true;
     try {
@@ -194,7 +194,7 @@ export async function render(root, ctx) {
       await b.commit(); toast('Marked as paid.');
     },
     async wusano() {
-      if (!confirm('Flag this payment because WUSA could not find it? Their trial stops until it is sorted out.')) return;
+      if (!confirm('Flag this payment because WUSA could not find it? Their event sign-in is paused until it is sorted out.')) return;
       const b = batch(); addWusaNotFound(b, { uid: selected, termId: tid }); await b.commit(); toast('Flagged.');
     },
     async clearflag() {
