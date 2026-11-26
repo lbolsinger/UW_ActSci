@@ -630,7 +630,7 @@ declare
   t0   timestamptz := clock_timestamp();
   stamp text := app_iso(t0);
   by_ms bigint := (extract(epoch from t0) * 1000)::bigint;
-  due  text := app_iso(t0 + interval '21 days');
+  due  text := app_iso(t0 + interval '14 days');
   r    record;
 begin
   if me is null or not app_is_member() then
