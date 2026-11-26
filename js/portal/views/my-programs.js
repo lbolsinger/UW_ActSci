@@ -15,7 +15,7 @@ export async function render(root, ctx) {
   if (!membership.paid) {
     const office = ctx.data.site.office;
     root.innerHTML = `<h2 class="page-h">My programs</h2>
-      <div class="alert"><b>Programs are for paid members.</b>Mentorship, resume critique, mock interviews and discount codes unlock once an exec has confirmed your club fee. A WUSA trial period covers events only. Pay in cash${office ? ` at the club office (${esc(office)})` : ''} or through WUSA, or in person at any club event, and an exec will confirm it. This page opens up as soon as they do.</div>`;
+      <div class="alert"><b>Programs are for paid members.</b>Mentorship, resume critique, mock interviews and discount codes unlock once an exec has confirmed your club fee. While a WUSA payment is being verified, only events are open. Show your WUSA receipt or pay in cash ${office ? ` at the club office (${esc(office)})` : ''} or in person at any club event, and an exec will confirm it. This page opens up as soon as they do.</div>`;
     return;
   }
   root.innerHTML = `<h2 class="page-h">My programs</h2>
