@@ -23,7 +23,7 @@ export async function render(box, eventId, ctx) {
   const success = (at, how) => {
     box.innerHTML = `<div class="portal-narrow"><div class="card okcard"><div class="tick">✓</div><div class="big">You're signed in</div>
       <p style="margin:8px auto 4px"><b>${esc(ev.title)}</b><br>${esc(when)}${at ? ' · signed in at ' + esc(fmtTime(at)) : ''}</p>
-      <p style="margin:0 auto 12px"><b>${esc(session.displayName)}</b><br><span class="pl">${esc(termLabel(ctx.term))} · ${m?.paid ? 'Paid' : 'Trial period'}</span></p>
+      <p style="margin:0 auto 12px"><b>${esc(session.displayName)}</b><br><span class="pl">${esc(termLabel(ctx.term))} · ${m?.paid ? 'Paid' : 'Awaiting verification'}</span></p>
       <p class="hint" style="margin:0 auto">Show this screen to an exec if they ask.${how ? ' ' + esc(how) : ''}</p></div></div>`;
   };
 
@@ -34,8 +34,8 @@ export async function render(box, eventId, ctx) {
     const body = payState(m) === 'flagged'
       ? `<p><b>Event sign-in is paused while an exec reviews your payment.</b></p><p>See an exec at the door, or email the club a screenshot or receipt of your payment.</p>`
       : m.payStatus === 'confirming'
-        ? `<p><b>Your trial period has ended and your WUSA payment hasn't been confirmed yet.</b></p><p>Show an exec your WUSA receipt at the door, or email it to the club, and they'll confirm it.</p>`
-        : `<p><b>You need to pay the club fee before you can sign in to events.</b> You're registered, but your payment hasn't been confirmed yet.</p><p>Pay in cash${office}, or through WUSA and enter your 6-digit confirmation number under <a href="#account/membership">My membership</a> to start a trial period. You can also see an exec at the door.</p>`;
+        ? `<p><b>We haven't been able to verify your WUSA payment yet.</b></p><p>Show an exec your WUSA receipt at the door, or email it to the club, and they'll confirm it.</p>`
+        : `<p><b>You need to pay the club fee before you can sign in to events.</b> You're registered, but your payment hasn't been confirmed yet.</p><p>Pay in cash${office}, or through WUSA and enter your 6-digit confirmation number under <a href="#account/membership">My membership</a> so you can join events while we verify it. You can also see an exec at the door.</p>`;
     box.innerHTML = card(payState(m) === 'flagged' ? 'Payment under review' : 'Payment required', body, 'alert'); return;
   }
   if (!isOpen(ev, ctx.portal.checkInOpensMinutesBefore)) {
