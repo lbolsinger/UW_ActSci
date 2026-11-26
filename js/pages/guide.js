@@ -9,7 +9,7 @@ export function render() {
   const g = store.guide;
   return `<h2 class="page-h">${esc(g.title)}</h2>
   <div class="stack guide">
-    <section class="card"><p style="margin:0;max-width:70ch">${esc(g.intro)}</p></section>
+    <section class="card"><p style="margin:0;max-width:none">${esc(g.intro)}</p></section>
     <section class="card" id="start"><h3>Getting started</h3>
       <ol class="gd-steps">${g.steps.map(s => `<li><b>${esc(s.title)}.</b> ${esc(s.text)}</li>`).join('')}</ol>
       <div class="btnrow"><a class="btn primary" href="#account">Go to my account</a></div></section>
