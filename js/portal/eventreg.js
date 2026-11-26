@@ -58,7 +58,7 @@ export function payWarning(office, m) {
        <p>Please see an exec at the door, or email the club a screenshot or receipt of your payment so they can confirm it.</p>`);
   }
   if (m?.payStatus === 'confirming') {
-    return popup('Your trial period has ended',
+    return popup('Your WUSA payment could not be confirmed',
       `<p style="margin-top:0"><b>An exec still needs to confirm your WUSA payment.</b></p>
        <p>Show an exec your WUSA receipt at the door, or email it to the club, and they'll confirm it so you can keep signing in.</p>`);
   }
