@@ -216,3 +216,4 @@ footer{max-width:1400px;margin:10px auto 0;padding:24px;color:var(--muted);font-
 .howstrip li{background:#FAFAF6;border:1px solid var(--line);border-radius:10px;padding:12px}
 .howstrip b{display:block;font-family:var(--head);margin-bottom:2px}
 @media(max-width:700px){.howstrip{grid-template-columns:1fr}}
+.guide .bullets li,.guide .gd-steps li,.guide .gd-q p{max-width:none}
