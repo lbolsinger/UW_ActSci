@@ -319,21 +319,20 @@ async function dashboard(v, ctx) {
       <label for="f-wusa">WUSA confirmation number</label>
       <div class="inline-f"><input id="f-wusa" name="wusa" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="6 digits" pattern="[0-9]*">
       <button class="btn primary" type="submit">Submit</button></div>
-      <small>Paid through WUSA? Enter the 6-digit number from your receipt. You'll get a trial period for events right away while we confirm it with WUSA. A trial can only be used once per term, and each number can only be used once.</small></form>`;
-  let status = '';
+      <small>Paid through WUSA? Enter the 6-digit number from your receipt. You can join events right away while we verify your payment with WUSA, which can take up to two weeks. Programs and discount codes unlock once it's verified. Each number can only be used once.</small></form>`;  let status = '';
   if (!current) {
     status = `<div class="alert"><b>You haven't registered for ${esc(termLabel(ctx.term))} yet.</b>Renew your membership to take part in this term's events and programs.</div>`;
   } else if (state === 'awaiting') {
     status = `<div class="alert"><b>Awaiting payment for ${esc(termLabel(ctx.term))}.</b>
       <p style="margin:6px 0 10px"><b>Paying in cash?</b> Pay at the club office${office ? ` (${esc(office)})` : ''} or to an exec at an event. They'll mark you as paid here.</p>
       <p style="margin:0 0 10px"><b>Paying through WUSA?</b> Enter your confirmation number below.</p>
-      ${current.trialUsed ? `<p class="hint" style="margin:0">Your trial for this term has already been used, so an exec has to confirm your payment before you can sign in.</p>` : wusaForm}</div>`;
+      ${current.trialUsed ? `<p class="hint" style="margin:0">You've already entered a WUSA number this term, so an exec has to verify your payment before you can sign in.</p>` : wusaForm}</div>`;
   } else if (state === 'confirming' && trialActive(current)) {
-    status = `<div class="alert ok"><b>Awaiting confirmation: trial period until ${dateOf(current.verifyBy)}.</b>
-      We'll confirm your WUSA payment by then. Until it's confirmed you can sign in to events, but programs (mentorship, resume critique, mock interviews) and discount codes stay locked. Want it confirmed sooner? You can ${proofLink}.</div>`;
+    status = `<div class="alert ok"><b>Awaiting confirmation: we'll verify your WUSA payment by ${dateOf(current.verifyBy)}.</b>
+  You can join events in the meantime. Programs (mentorship, resume critique, mock interviews) and discount codes stay locked until your payment is verified. Want it sooner? You can ${proofLink}, or show your receipt at office hours${office ? ` (${esc(office)})` : ''}.</div>`;
   } else if (state === 'confirming') {
-    status = `<div class="alert"><b>Your trial period ended on ${dateOf(current.verifyBy)}.</b>
-      We still need to confirm your WUSA payment. Please ${proofLink} or show an exec your receipt, and you'll be set.</div>`;
+    status = `<div class="alert"><b>We haven't been able to verify your WUSA payment yet.</b>
+      Please ${proofLink}, or show your receipt at office hours${office ? ` (${esc(office)})` : ''}, and an exec will mark you as paid.</div>`;
   } else if (state === 'flagged') {
     status = current.flagReason === 'wusa-not-found'
       ? `<div class="alert err"><b>Unverified: we couldn't confirm your proof of payment.</b>
@@ -400,7 +399,7 @@ async function dashboard(v, ctx) {
     const btn = e.target.querySelector('button'); btn.disabled = true;
     try {
       const r = await submitWusa(tid, e.target.wusa.value);
-      toast(r.status === 'paid' ? 'You\'re already paid.' : r.status === 'flagged' ? 'Thanks. An exec will review this number.' : 'Thanks! Your trial period has started.');
+      toast(r.status === 'paid' ? 'You\'re already paid.' : r.status === 'flagged' ? 'Thanks. An exec will review this number.' : 'Thanks! You can join events now while we verify your payment.');
       ctx.rerender();
     } catch (err) { btn.disabled = false; toast(err.message || 'Could not submit that number.', 'err'); }
   });
