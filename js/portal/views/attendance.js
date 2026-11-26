@@ -37,7 +37,7 @@ export async function render(root, ctx) {
     v.querySelector('#counts').innerHTML = `<div class="stat"><b>${present.length}</b><span>Present</span></div><div class="stat"><b>${paidTonight}</b><span>Paid tonight</span></div><div class="stat"><b>${trial}</b><span>Awaiting verification</span></div>`;
     v.querySelector('#ptitle').textContent = `Present so far (${present.length})`;
     v.querySelector('#plist').innerHTML = present.length
-      ? [...present].sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0)).map(a => `<li><div><b>${esc(a.name)}</b>${a.trial && !a.paidTonight ? ' ' + badge('Trial', 'b-trial') : ''}</div><small>${stamps(a)}</small></li>`).join('')
+      ? [...present].sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0)).map(a => `<li><div><b>${esc(a.name)}</b>${a.trial && !a.paidTonight ? ' ' + badge('Unverified', 'b-trial') : ''}</div><small>${stamps(a)}</small></li>`).join('')
       : '<li class="hint">No one yet.</li>';
   }
 
@@ -93,7 +93,7 @@ export async function render(root, ctx) {
     },
     async trialpresent(el) {
       const u = rowUser(el);
-      await F.setDoc(ref('attendance', `${event.id}_${u.id}`), attDoc(u, { trial: true })); toast(`${u.name} is marked present (trial).`);
+      await F.setDoc(ref('attendance', `${event.id}_${u.id}`), attDoc(u, { trial: true })); toast(`${u.name} is marked present (payment still being verified)..`);
     },
     async renewpresent(el) {
       const u = rowUser(el), d = rowPay(el), err = validatePayment(d); if (err) return toast(err, 'err');
@@ -112,7 +112,7 @@ export async function render(root, ctx) {
       dlg.className = 'scrim'; dlg.id = 'qr-scrim';
       dlg.innerHTML = `<div class="modal" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="qrh"><div class="modal-head"><h2 id="qrh">Door check-in code</h2><button class="x" aria-label="Close">×</button></div>
         <div class="modal-body"><div class="qrbox"><canvas id="qrc"></canvas><b style="font-family:var(--head)">${esc(event.title)}</b><div class="hint" style="margin-top:4px">${esc(fmtLong(parse(event.start)))}${event.location ? ' · ' + esc(event.location) : ''}</div></div>
-          <div class="alert" style="margin:14px 0 0">Scanning opens the club site. Paid members, and members in their WUSA trial, are marked present automatically. This code only works from ${esc(fmtTime(w.opens))} until the event ends at ${esc(fmtTime(w.end))}.</div>
+          <div class="alert" style="margin:14px 0 0">Scanning opens the club site. Paid members, and members whose WUSA payment is still being verified, are marked present automatically. This code only works from ${esc(fmtTime(w.opens))} until the event ends at ${esc(fmtTime(w.end))}.</div>
           <p class="hint" style="word-break:break-all;margin:10px 0 0">${esc(url)}</p>
           <div class="btnrow" style="margin-top:14px;justify-content:center"><a class="btn primary" href="#" id="qr-print">Print this code</a></div></div></div>`;
       document.body.appendChild(dlg);
